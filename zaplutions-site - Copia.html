@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>zapLutions — Soluções via WhatsApp para Vendas, Suporte e Automação</title>
+  <meta name="description" content="Automatize operações no WhatsApp com chatbots, funis de leads, SAC, cobranças, agendamentos e integrações. Simples, rápido e escalável." />
+  <meta name="theme-color" content="#0b0f0e" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' ry='28' fill='%230b0f0e'/%3E%3Cpath d='M32 96l6-22a36 36 0 1165-21 36 36 0 01-49 42z' fill='%2325D366'/%3E%3Cpath d='M47 78l-3 10 10-3c16 9 36 6 48-8 15-18 12-45-7-59-20-14-48-9-61 12-10 15-9 34 1 48z' fill='white' fill-opacity='.06'/%3E%3C/svg%3E">
+  <meta property="og:title" content="zapLutions — Soluções via WhatsApp" />
+  <meta property="og:description" content="Chatbots e automação para vender, atender e cobrar no WhatsApp sem dor de cabeça." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://dummyimage.com/1200x630/0b0f0e/25D366.png&text=zapLutions" />
+  <style>
+    :root{
+      --bg: #0b0f0e;
+      --card:#121614;
+      --muted:#9aa3af;
+      --text:#e6e9ee;
+      --edge:#1d2420;
+      --green:#25D366;
+      --green-2:#00A884;
+      --ring: 0 0 0 3px rgba(37,211,102,.25);
+      --shadow: 0 10px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.02);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background: radial-gradient(1200px 600px at 80% -10%, rgba(0,168,132,.08), transparent 50%), 
+                          radial-gradient(700px 500px at 10% 10%, rgba(37,211,102,.06), transparent 45%),
+                          var(--bg);
+      color:var(--text); font: 500 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      letter-spacing:.2px;
+    }
+    a{color:inherit; text-decoration:none}
+    .container{max-width:1200px; margin:0 auto; padding:0 20px}
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter: saturate(180%) blur(8px);
+      background: color-mix(in oklab, var(--bg) 86%, #000);
+      border-bottom:1px solid #121a16;
+    }
+    .nav{display:flex; align-items:center; justify-content:space-between; padding:14px 0}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px}
+    .logo{width:28px; height:28px; border-radius:8px; background: linear-gradient(135deg, var(--green), var(--green-2)); display:inline-grid; place-items:center; box-shadow: var(--shadow)}
+    .logo svg{width:18px; height:18px; fill:#0b0f0e}
+    .nav a{opacity:.9}
+    .menu{display:flex; gap:18px; align-items:center}
+    .cta{padding:10px 16px; border-radius:10px; background:linear-gradient(135deg,var(--green),var(--green-2)); color:#0b0f0e; font-weight:800; border:none; cursor:pointer; box-shadow:0 10px 24px rgba(0,168,132,.25)}
+    .cta:hover{filter:saturate(1.1) brightness(1.05)}
+    .ghost{padding:10px 14px; border-radius:10px; border:1px solid #183024; background:transparent}
+    .hero{padding:84px 0 48px; text-align:center}
+    .eyebrow{display:inline-block; padding:6px 12px; border:1px solid #193123; border-radius:999px; color:#b6f7cd; background:rgba(0,168,132,.07)}
+    h1{font-size:44px; line-height:1.12; margin:18px 0 14px; letter-spacing:-.5px}
+    .sub{max-width:780px; margin:0 auto 26px; color:var(--muted); font-size:18px}
+    .hero-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:8px}
+    .hero-shot{margin:48px auto 0; max-width:980px; padding:4px; border-radius:20px; background: linear-gradient(135deg, rgba(37,211,102,.2), rgba(0,168,132,.08)); box-shadow: var(--shadow)}
+    .hero-shot-inner{border-radius:16px; background:linear-gradient(180deg,#0f1412,#0b0f0e); padding:14px; border:1px solid #1b241f}
+    .badges{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:18px 0 0}
+    .badge{padding:6px 10px; border:1px solid #1b241f; border-radius:999px; color:#b7c4bd; background:rgba(255,255,255,.02)}
+    .grid{display:grid; gap:16px; grid-template-columns: repeat(12, 1fr)}
+    .card{background:linear-gradient(180deg,#121614,#0f1311); border:1px solid #1b241f; border-radius:var(--radius); padding:18px; box-shadow: var(--shadow)}
+    .card h3{margin:0 0 6px}
+    .features{padding:56px 0 20px}
+    .feat{grid-column: span 4}
+    .feat p{color:var(--muted)}
+    .feat .icon{width:38px; height:38px; border-radius:10px; display:grid; place-items:center; background:rgba(37,211,102,.1); border:1px solid #1b3a2a; margin-bottom:10px}
+    .metrics{padding:10px 0 60px}
+    .kpi{grid-column: span 3; text-align:center}
+    .kpi .num{font-size:30px; font-weight:900}
+    .section-title{display:flex; align-items:center; justify-content:space-between; margin:12px 0 16px}
+    .section-title h2{margin:0; font-size:24px}
+    .how{padding:20px 0 30px}
+    .step{grid-column: span 4; position:relative}
+    .step-number{position:absolute; top:-10px; right:12px; font-weight:900; color:#75e7a8; opacity:.2; font-size:54px}
+    .logos{display:flex; gap:22px; align-items:center; justify-content:center; flex-wrap:wrap; padding:10px 0 30px}
+    .logo-pill{padding:8px 12px; border:1px dashed #1b241f; border-radius:999px; color:#b7c4bd}
+    .pricing{padding:40px 0 40px}
+    .plan{grid-column: span 4; position:relative; overflow:hidden}
+    .plan .price{font-size:36px; font-weight:900}
+    .plan .btn{margin-top:12px; width:100%}
+    .plan.pop::after{content:"Mais vendido"; position:absolute; top:12px; right:-48px; transform:rotate(35deg); background:linear-gradient(135deg,var(--green),var(--green-2)); color:#0b0f0e; font-weight:800; padding:6px 60px}
+    .faq{padding:30px 0 60px}
+    .qa{grid-column: span 6}
+    details{background:linear-gradient(180deg,#121614,#0f1311); border:1px solid #1b241f; border-radius:12px; padding:14px 16px}
+    summary{cursor:pointer; font-weight:700}
+    details p{color:var(--muted)}
+    footer{padding:40px 0 60px; border-top:1px solid #121a16; color:#9fb2a7}
+    .footer-grid{display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:20px}
+    .tag{font-size:12px; opacity:.7}
+    .floating-wa{position:fixed; right:18px; bottom:18px; width:54px; height:54px; border-radius:18px; background:linear-gradient(135deg,var(--green),var(--green-2)); display:grid; place-items:center; color:#0b0f0e; font-weight:900; box-shadow:0 10px 24px rgba(0,168,132,.28); z-index:60}
+    .notice{border:1px solid #1b241f; border-radius:12px; padding:10px 12px; color:#b7c4bd; font-size:14px; background:rgba(255,255,255,.02)}
+    .chip{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid #1b241f; border-radius:999px}
+    .list{display:flex; flex-direction:column; gap:8px; margin:10px 0 0}
+    .list li{display:flex; gap:10px; align-items:flex-start}
+    .check{margin-top:2px}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:12px 16px; border-radius:12px; border:1px solid #1b3a2a; background:linear-gradient(135deg,var(--green),var(--green-2)); color:#0b0f0e; font-weight:900; cursor:pointer; box-shadow:0 10px 24px rgba(37,211,102,.18)}
+    .btn.ghost{background:transparent; color:var(--text); border-color:#224337; box-shadow:none}
+    .btn.line{background:transparent; border-color:#223027}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid #1b241f; color:#b6c2bc}
+    .muted{color:var(--muted)}
+    .divider{height:1px; background:linear-gradient(90deg, transparent, #1b241f, transparent); margin:26px 0}
+    @media (max-width: 980px){
+      .feat, .kpi, .step, .qa, .plan{grid-column: span 12}
+      .footer-grid{grid-template-columns: 1fr 1fr}
+      h1{font-size:34px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.5c0 4.7-3.8 8.5-8.5 8.5-1.5 0-3-.4-4.2-1l-5.3 1.4 1.4-5.2c-.7-1.3-1.1-2.8-1.1-4.4C3.3 7.1 7.1 3.3 11.8 3.3S21 7.1 21 11.8zM7.8 8.9c-.2-.4-.5-.7-.9-.7-.3 0-.6.2-.7.4-.2.3-.5.7-.2 1.3.3.7 1 1.7 2.3 2.7 1.4 1 2.8 1.3 3.8 1.3.9 0 1.4-.3 1.6-.7.2-.4.2-.8 0-1.2-.1-.3-.4-.4-.7-.5l-.9-.2c-.3-.1-.5 0-.7.2l-.3.4c-.1.1-.3.1-.5.1-.2 0-.9-.2-1.6-.8-.7-.6-1.1-1.2-1.2-1.4-.1-.2 0-.4.1-.5l.3-.3c.1-.2.2-.4.1-.7l-.2-.7z"></path></svg>
+        </div>
+        <span>zapLutions</span>
+        <span class="tag pill">by WhatsApp</span>
+      </div>
+      <nav class="menu">
+        <a href="#features">Recursos</a>
+        <a href="#how">Como funciona</a>
+        <a href="#pricing">Planos</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contato" class="ghost">Contato</a>
+        <a href="https://wa.me/5500000000000?text=Quero%20testar%20o%20zapLutions" class="cta">Teste grátis</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <span class="eyebrow">100% focado em WhatsApp • Pronto para escalar</span>
+      <h1>Chatbots e automação para <span style="background:linear-gradient(135deg,var(--green),var(--green-2)); -webkit-background-clip:text; background-clip:text; color:transparent;">vender, atender e cobrar</span> no WhatsApp.</h1>
+      <p class="sub">Onboard em minutos. Fluxos prontos. Integra com n8n, Evolution API, Google Sheets, ClickUp e muito mais. Segurança de nível enterprise e métricas em tempo real.</p>
+      <div class="hero-cta">
+        <a class="btn" href="https://wa.me/5500000000000?text=Quero%20testar%20o%20zapLutions">Começar agora</a>
+        <a class="btn ghost" href="#demo">Ver demo</a>
+      </div>
+
+      <div class="badges">
+        <span class="badge">Sem código</span>
+        <span class="badge">Funis de leads</span>
+        <span class="badge">SAC & NPS</span>
+        <span class="badge">Cobrança/Boletos</span>
+        <span class="badge">Agendamentos</span>
+        <span class="badge">Multicanal</span>
+      </div>
+
+      <div class="hero-shot">
+        <div class="hero-shot-inner">
+          <div class="grid">
+            <div class="card" style="grid-column: span 7">
+              <div class="chip"><strong>Playbook</strong> • Vendas inbound</div>
+              <h3>Capture, qualifique e feche no WhatsApp</h3>
+              <ul class="list">
+                <li><span class="check">✅</span><span>Triagem automática por palavras‑chave, tags e intenção</span></li>
+                <li><span class="check">✅</span><span>Distribuição de leads por prioridade ou round‑robin</span></li>
+                <li><span class="check">✅</span><span>Handoff humano 1‑clique (web/app)</span></li>
+              </ul>
+              <div class="notice" style="margin-top:12px">Compatível com <strong>Evolution API</strong> e <strong>Oficial WhatsApp Cloud API</strong>.</div>
+            </div>
+            <div class="card" style="grid-column: span 5">
+              <div class="chip"><strong>Dashboard</strong> • Tempo real</div>
+              <h3>SLAs, conversão e tickets</h3>
+              <div class="grid" style="margin-top:6px">
+                <div class="card" style="grid-column: span 6; text-align:center">
+                  <div class="muted tag">Conversão 7d</div>
+                  <div class="num" style="font-weight:900; font-size:26px">18,7%</div>
+                </div>
+                <div class="card" style="grid-column: span 6; text-align:center">
+                  <div class="muted tag">Tempo de 1ª resposta</div>
+                  <div class="num" style="font-weight:900; font-size:26px">1m 42s</div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div class="muted">APIs abertas para BI (Power BI, Looker). Webhooks e eventos para automações.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features container">
+      <div class="section-title">
+        <h2>Recursos core</h2>
+        <span class="pill">Enterprise‑ready</span>
+      </div>
+      <div class="grid">
+        <div class="feat card">
+          <div class="icon">🤖</div>
+          <h3>Chatbots de ponta</h3>
+          <p>Fluxos com IA para qualificação, SAC, cobrança e agenda. Suporte a múltiplos contextos e fallback humano.</p>
+        </div>
+        <div class="feat card">
+          <div class="icon">📈</div>
+          <h3>Analytics operacional</h3>
+          <p>Métricas de SLA, CSAT/NPS, conversão, funil e produtividade por atendente, equipe e unidade.</p>
+        </div>
+        <div class="feat card">
+          <div class="icon">🔌</div>
+          <h3>Integrações</h3>
+          <p>n8n, Evolution API, Google Sheets, ClickUp, RD Station, CRM/ERP via Webhooks/REST.</p>
+        </div>
+        <div class="feat card">
+          <div class="icon">🧭</div>
+          <h3>Orquestração inteligente</h3>
+          <p>Distribuição automática de tickets e leads por regras de negócio, horário e capacidade.</p>
+        </div>
+        <div class="feat card">
+          <div class="icon">🔒</div>
+          <h3>Segurança</h3>
+          <p>Autenticação 2FA, RBAC, criptografia em repouso e trânsito, trilhas de auditoria.</p>
+        </div>
+        <div class="feat card">
+          <div class="icon">⚙️</div>
+          <h3>Sem código</h3>
+          <p>Construa fluxos com blocos visuais e templates prontos. Zero dependência de TI para o dia a dia.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics container">
+      <div class="grid">
+        <div class="kpi card"><div class="num">-35%</div><div class="muted">redução no TMA</div></div>
+        <div class="kpi card"><div class="num">+22%</div><div class="muted">conversão em 30 dias</div></div>
+        <div class="kpi card"><div class="num">99,9%</div><div class="muted">uptime de plataforma</div></div>
+        <div class="kpi card"><div class="num">24h</div><div class="muted">onboard completo</div></div>
+      </div>
+    </section>
+
+    <section id="how" class="how container">
+      <div class="section-title">
+        <h2>Como funciona</h2>
+        <span class="pill">Do zero ao live em 4 passos</span>
+      </div>
+      <div class="grid">
+        <div class="step card">
+          <div class="step-number">01</div>
+          <h3>Conecte seu WhatsApp</h3>
+          <p>Escolha Evolution API ou Cloud API. Valide QR Code e ative o número oficial.</p>
+        </div>
+        <div class="step card">
+          <div class="step-number">02</div>
+          <h3>Escolha um playbook</h3>
+          <p>Templates: Vendas, SAC/NPS, Cobrança, Agendamento, Recuperação de Inativos.</p>
+        </div>
+        <div class="step card">
+          <div class="step-number">03</div>
+          <h3>Integre seus dados</h3>
+          <p>Planilhas, CRM/ERP e automações no n8n. Eventos e webhooks em tempo real.</p>
+        </div>
+        <div class="step card">
+          <div class="step-number">04</div>
+          <h3>Monitore e escale</h3>
+          <p>Dashboard operacional e de receita. Ajustes contínuos com IA de roteamento.</p>
+        </div>
+      </div>
+      <div class="logos">
+        <div class="logo-pill">Evolution API</div>
+        <div class="logo-pill">WhatsApp Cloud API</div>
+        <div class="logo-pill">n8n</div>
+        <div class="logo-pill">Google Sheets</div>
+        <div class="logo-pill">ClickUp</div>
+        <div class="logo-pill">RD Station</div>
+      </div>
+    </section>
+
+    <section id="pricing" class="pricing container">
+      <div class="section-title">
+        <h2>Planos</h2>
+        <span class="pill">Sem fidelidade • Upgrade a qualquer momento</span>
+      </div>
+      <div class="grid">
+        <div class="plan card">
+          <div class="tag">Starter</div>
+          <div class="price">R$ 249<span class="muted" style="font-size:14px">/mês</span></div>
+          <ul class="list">
+            <li>✅ 1 número WhatsApp</li>
+            <li>✅ 2 playbooks</li>
+            <li>✅ 2.000 conversas/mês</li>
+            <li>✅ Integração Google Sheets</li>
+          </ul>
+          <a class="btn line" href="https://wa.me/5500000000000?text=Quero%20o%20Starter%20do%20zapLutions">Assinar Starter</a>
+        </div>
+        <div class="plan card pop">
+          <div class="tag">Pro</div>
+          <div class="price">R$ 749<span class="muted" style="font-size:14px">/mês</span></div>
+          <ul class="list">
+            <li>✅ 3 números WhatsApp</li>
+            <li>✅ Playbooks ilimitados</li>
+            <li>✅ 20.000 conversas/mês</li>
+            <li>✅ n8n + Webhooks + RBAC</li>
+          </ul>
+          <a class="btn" href="https://wa.me/5500000000000?text=Quero%20o%20Pro%20do%20zapLutions">Assinar Pro</a>
+        </div>
+        <div class="plan card">
+          <div class="tag">Scale</div>
+          <div class="price">Sob consulta</div>
+          <ul class="list">
+            <li>✅ Múltiplas unidades/filiais</li>
+            <li>✅ SSO/SAML e auditoria</li>
+            <li>✅ Suporte 24x7</li>
+            <li>✅ SLA e implantação dedicada</li>
+          </ul>
+          <a class="btn ghost" href="https://wa.me/5500000000000?text=Quero%20o%20Scale%20do%20zapLutions">Falar com consultor</a>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:8px">Valores não incluem custos da API do WhatsApp ou provedores terceiros.</p>
+    </section>
+
+    <section class="container" id="demo">
+      <div class="section-title">
+        <h2>Demo guiada</h2>
+        <span class="pill">10 minutos</span>
+      </div>
+      <div class="card">
+        <p class="muted">Veja o fluxo de ponta a ponta: conexão do número, playbook de vendas, handoff humano e métricas. Envie <strong>“Quero demo”</strong> no WhatsApp.</p>
+        <a class="btn" style="margin-top:8px; width:max-content" href="https://wa.me/5500000000000?text=Quero%20demo%20do%20zapLutions">Abrir WhatsApp</a>
+      </div>
+    </section>
+
+    <section id="faq" class="faq container">
+      <div class="section-title">
+        <h2>Perguntas frequentes</h2>
+        <span class="pill">Transparência total</span>
+      </div>
+      <div class="grid">
+        <div class="qa">
+          <details open>
+            <summary>Preciso de número oficial? É compatível com Evolution API?</summary>
+            <p>Funciona com número oficial via Cloud API ou com providers como Evolution API. Recomendamos oficial para alto volume e compliance.</p>
+          </details>
+        </div>
+        <div class="qa">
+          <details>
+            <summary>Posso integrar com meu CRM/ERP?</summary>
+            <p>Sim. Integrações nativas (Sheets, ClickUp, RD) e REST/Webhooks para qualquer sistema. Eventos em tempo real.</p>
+          </details>
+        </div>
+        <div class="qa">
+          <details>
+            <summary>Consigo atendimento humano no meio do fluxo?</summary>
+            <p>Sim, o handoff é 1‑clique com roteamento por fila/equipe e regras de prioridade.</p>
+          </details>
+        </div>
+        <div class="qa">
+          <details>
+            <summary>Como funcionam os preços?</summary>
+            <p>Assinatura mensal por workspace + custos do WhatsApp/API por fora. Sem fidelidade. Upgrade/downgrade quando quiser.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="contato" class="container" style="padding: 10px 0 40px">
+      <div class="section-title">
+        <h2>Contato</h2>
+        <span class="pill">Resposta em até 1 hora útil</span>
+      </div>
+      <div class="grid">
+        <div class="card" style="grid-column: span 7">
+          <form class="grid" onsubmit="openWhatsapp(event)">
+            <div style="grid-column: span 6">
+              <label class="muted">Nome</label>
+              <input required name="nome" class="input" placeholder="Seu nome"/>
+            </div>
+            <div style="grid-column: span 6">
+              <label class="muted">Empresa</label>
+              <input name="empresa" class="input" placeholder="Sua empresa"/>
+            </div>
+            <div style="grid-column: span 12">
+              <label class="muted">Mensagem</label>
+              <textarea required name="msg" class="input" rows="4" placeholder="Conte seu caso rapidamente..."></textarea>
+            </div>
+            <div style="grid-column: span 12; display:flex; gap:10px; align-items:center">
+              <button class="btn" type="submit">Enviar via WhatsApp</button>
+              <a class="btn ghost" href="mailto:contato@zaplutions.com">contato@zaplutions.com</a>
+            </div>
+          </form>
+        </div>
+        <div class="card" style="grid-column: span 5">
+          <div class="list">
+            <div class="chip">⏱️ Onboard em 24h</div>
+            <div class="chip">🛡️ Segurança enterprise</div>
+            <div class="chip">📞 Suporte humano</div>
+            <div class="chip">📚 Templates prontos</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <div class="brand">
+          <div class="logo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.5c0 4.7-3.8 8.5-8.5 8.5-1.5 0-3-.4-4.2-1l-5.3 1.4 1.4-5.2c-.7-1.3-1.1-2.8-1.1-4.4C3.3 7.1 7.1 3.3 11.8 3.3S21 7.1 21 11.8zM7.8 8.9c-.2-.4-.5-.7-.9-.7-.3 0-.6.2-.7.4-.2.3-.5.7-.2 1.3.3.7 1 1.7 2.3 2.7 1.4 1 2.8 1.3 3.8 1.3.9 0 1.4-.3 1.6-.7.2-.4.2-.8 0-1.2-.1-.3-.4-.4-.7-.5l-.9-.2c-.3-.1-.5 0-.7.2l-.3.4c-.1.1-.3.1-.5.1-.2 0-.9-.2-1.6-.8-.7-.6-1.1-1.2-1.2-1.4-.1-.2 0-.4.1-.5l.3-.3c.1-.2.2-.4.1-.7l-.2-.7z"></path></svg>
+          </div>
+          <span>zapLutions</span>
+        </div>
+        <p class="muted">© <span id="yy"></span> zapLutions. Todos os direitos reservados.</p>
+      </div>
+      <div>
+        <div class="tag">Produto</div>
+        <div class="list">
+          <a href="#features">Recursos</a>
+          <a href="#how">Como funciona</a>
+          <a href="#pricing">Planos</a>
+          <a href="#faq">FAQ</a>
+        </div>
+      </div>
+      <div>
+        <div class="tag">Empresa</div>
+        <div class="list">
+          <a href="#contato">Contato</a>
+          <a href="#">Status</a>
+          <a href="#">Privacidade</a>
+          <a href="#">Termos</a>
+        </div>
+      </div>
+      <div>
+        <div class="tag">Integrações</div>
+        <div class="list">
+          <span>Evolution API</span>
+          <span>WhatsApp Cloud API</span>
+          <span>n8n</span>
+          <span>Sheets, ClickUp, RD</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <a class="floating-wa" href="https://wa.me/5500000000000?text=Ol%C3%A1!%20Quero%20conhecer%20o%20zapLutions">WA</a>
+
+  <style>
+    /* minimal form/input styles without external deps */
+    label{display:block; margin-bottom:6px; font-size:13px}
+    .input{
+      width:100%; padding:12px 14px; border-radius:12px; border:1px solid #1b241f;
+      background: linear-gradient(180deg, #0f1412, #0b0f0e); color:var(--text); outline:none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03)
+    }
+    .input:focus{border-color:#275941; box-shadow: var(--ring)}
+  </style>
+
+  <script>
+    document.getElementById('yy').textContent = new Date().getFullYear();
+
+    function openWhatsapp(e){
+      e.preventDefault();
+      const data = new FormData(e.target);
+      const nome = encodeURIComponent(data.get('nome')||'');
+      const empresa = encodeURIComponent(data.get('empresa')||'');
+      const msg = encodeURIComponent(data.get('msg')||'');
+      const text = `Olá, sou ${nome} (${empresa}). ${msg}`;
+      const url = `https://wa.me/5500000000000?text=${text}`;
+      window.open(url, '_blank');
+    }
+
+    // smooth scroll for in-page anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const id = a.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el){
+          e.preventDefault();
+          el.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+      })
+    });
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"SoftwareApplication",
+    "name":"zapLutions",
+    "applicationCategory":"BusinessApplication",
+    "operatingSystem":"Web",
+    "offers": {
+      "@type":"Offer",
+      "price":"249.00",
+      "priceCurrency":"BRL"
+    },
+    "description":"Soluções via WhatsApp para vendas, suporte, cobrança e agendamento, com integrações nativas e automações."
+  }
+  </script>
+</body>
+</html>

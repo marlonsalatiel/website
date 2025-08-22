@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>ZapLution — Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0f0c;        /* fundo */
+      --card: #111614;      /* cartões */
+      --muted: #a0afa8;     /* texto secundário */
+      --text: #e8f2ee;      /* texto principal */
+      --line: #1d2622;      /* bordas sutis */
+      --wa: #25d366;        /* WhatsApp Green */
+      --wa-dark: #128c7e;   /* WhatsApp Dark */
+      --danger: #ef4444;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% 10%, rgba(37,211,102,.08), transparent 60%),
+                  radial-gradient(900px 600px at 90% 90%, rgba(18,140,126,.08), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: clamp(16px, 3vw, 28px); }
+
+    /* Topbar */
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .logo { width: 32px; height: 32px; border-radius: 10px; background:
+      conic-gradient(from 180deg at 50% 50%, var(--wa) 0 25%, var(--wa-dark) 25% 50%, #1f8f64 50% 75%, #1a7b56 75% 100%);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.06), var(--shadow);
+    }
+    .brand h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: .4px; }
+    .pill { border: 1px solid var(--line); color: var(--muted); padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      display: inline-grid; place-items: center; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: #0f1512; color: var(--text); cursor: pointer; transition: filter .2s ease, transform .04s ease, border-color .2s ease;
+    }
+    .btn:hover { filter: brightness(1.05); border-color: #284237; }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { border: 0; background: linear-gradient(180deg, var(--wa), var(--wa-dark)); color: #05231a; box-shadow: 0 6px 16px rgba(37,211,102,.25); }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+
+    /* Cards grid */
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+    .card { grid-column: span 12; background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) , var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+    @media (min-width: 640px) { .card.sm-6 { grid-column: span 6; } }
+    @media (min-width: 960px) { .card.md-4 { grid-column: span 4; } }
+
+    .card h3 { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+
+    /* Instance list */
+    .inst-list { display: grid; gap: 10px; }
+    .inst-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #0e1411; }
+    .inst-meta { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .dot { width: 10px; height: 10px; border-radius: 999px; background: var(--warn); box-shadow: 0 0 0 2px rgba(245, 158, 11, .15); }
+    .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tag { font-size: 12px; color: var(--muted); border: 1px solid var(--line); padding: 4px 8px; border-radius: 999px; }
+    .row-actions { display: flex; gap: 8px; }
+
+    .footer { margin-top: 20px; text-align: center; color: var(--muted); font-size: 12px; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; display: none; place-items: center; background: rgba(0,0,0,.5); backdrop-filter: blur(2px); }
+    .modal.open { display: grid; }
+    .sheet { width: min(460px, 92vw); background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
+    .sheet h4 { margin: 0 0 8px; }
+    .sheet p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+    .field { display: grid; gap: 6px; margin-bottom: 12px; }
+    .input { width: 100%; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--line); background: #0d1310; color: var(--text); outline: none; }
+    .input:focus { border-color: var(--wa); box-shadow: 0 0 0 3px rgba(37,211,102,.16); }
+    .sheet .row { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* Toast */
+    .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: #0f1512; border: 1px solid var(--line); padding: 10px 14px; border-radius: 12px; color: var(--text); display: none; box-shadow: var(--shadow); }
+    .toast.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>ZapLution</h1>
+          <div id="usage" class="pill">Carregando…</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="newBtn" class="btn primary">Nova instância</button>
+        <button id="logoutBtn" class="btn" title="Sair">Sair</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="card sm-6 md-4">
+        <h3>Instâncias conectadas</h3>
+        <div id="list" class="inst-list" role="list"></div>
+      </section>
+      <section class="card sm-6 md-4">
+        <h3>Resumo</h3>
+        <div id="summary">
+          <div class="tag" id="loginTag">Usuário: —</div>
+          <div class="tag" id="statusTag" style="margin-top:10px">Status: ativo</div>
+        </div>
+      </section>
+      <section class="card sm-12 md-4">
+        <h3>Observações</h3>
+        <p style="color: var(--muted); font-size: 14px; line-height: 1.5">
+          Os dados desta tela vêm do JSON retornado no login e são mantidos localmente. Para sincronizar com o servidor, atualize o login na página inicial.
+        </p>
+      </section>
+    </main>
+
+    <p class="footer">© <span id="y"></span> ZapLution. Todos os direitos reservados.</p>
+  </div>
+
+  <!-- Modal Nova Instância -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="newTitle">
+      <h4 id="newTitle">Criar nova instância</h4>
+      <p>Defina um identificador. Use letras, números, hífen ou sublinhado. Ex.: <code>vendas_sp_01</code></p>
+      <div class="field">
+        <label for="instName" style="color: var(--muted); font-size: 13px">Nome da instância</label>
+        <input id="instName" class="input" type="text" placeholder="ex.: zap_bot_01" />
+      </div>
+      <div class="row">
+        <button id="cancelBtn" class="btn">Cancelar</button>
+        <button id="createBtn" class="btn primary">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function() {
+      const CREATE_INSTANCE_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/create-instance'; // ajuste aqui conforme seu fluxo n8n
+
+      const usageEl = document.getElementById('usage');
+      const listEl = document.getElementById('list');
+      const loginTag = document.getElementById('loginTag');
+      const year = new Date().getFullYear();
+      document.getElementById('y').textContent = year;
+
+      const modal = document.getElementById('modal');
+      const newBtn = document.getElementById('newBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const createBtn = document.getElementById('createBtn');
+      const instNameEl = document.getElementById('instName');
+      const toastEl = document.getElementById('toast');
+
+      function toast(msg) {
+        toastEl.textContent = msg; toastEl.classList.add('show');
+        setTimeout(() => toastEl.classList.remove('show'), 2200);
+      }
+
+      function openModal() { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); instNameEl.value = ''; instNameEl.focus(); }
+      function closeModal() { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+
+      function parseAuth() {
+        const raw = localStorage.getItem('authData');
+        if (!raw) return null;
+        try {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr) && arr.length) return arr[0];
+        } catch (_) {}
+        return null;
+      }
+
+      function sanitizeName(s) {
+        return String(s || '').trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
+      }
+
+      function dedupe(arr) {
+        const seen = new Set();
+        const out = [];
+        for (const x of arr || []) {
+          const k = String(x);
+          if (!seen.has(k)) { seen.add(k); out.push(k); }
+        }
+        return out;
+      }
+
+      function render(state) {
+        const { login, active, instancesAllowed } = state;
+        let instances = dedupe(state.instances || []);
+        const used = instances.length;
+
+        loginTag.textContent = `Usuário: ${login}`;
+        usageEl.textContent = `${used}/${instancesAllowed} em uso`;
+
+        // Botão de nova instância somente se houver espaço
+        newBtn.toggleAttribute('disabled', used >= instancesAllowed);
+
+        // Lista
+        listEl.innerHTML = '';
+        if (!instances.length) {
+          const empty = document.createElement('div');
+          empty.className = 'inst-item';
+          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
+          listEl.appendChild(empty);
+        } else {
+          for (const name of instances) {
+            const row = document.createElement('div');
+            row.className = 'inst-item';
+            row.innerHTML = `
+              <div class="inst-meta">
+                <span class="dot" title="status desconhecido"></span>
+                <span class="name">${name}</span>
+              </div>
+              <div class="row-actions">
+                <button class="btn" data-act="copy" data-name="${name}" title="Copiar nome">Copiar</button>
+              </div>
+            `;
+            listEl.appendChild(row);
+          }
+        }
+
+        // handlers de linha
+        listEl.querySelectorAll('button[data-act="copy"]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(btn.dataset.name || ''); toast('Nome copiado'); } catch (_) { toast('Falhou ao copiar'); }
+          });
+        });
+      }
+
+      function loadState() {
+        const data = parseAuth();
+        if (!data) {
+          toast('Sessão expirada. Faça login novamente.');
+          setTimeout(() => { window.location.replace('index.html'); }, 800);
+          return null;
+        }
+        // Normaliza estrutura esperada
+        return {
+          id: data.id,
+          login: data.login,
+          active: !!data.active,
+          instancesAllowed: Number(data.instancesAllowed || 0),
+          instances: Array.isArray(data.instances) ? data.instances : []
+        };
+      }
+
+      async function createInstance(state, nameRaw) {
+        const name = sanitizeName(nameRaw);
+        if (!name) { toast('Informe um nome válido'); return null; }
+        if (state.instances.includes(name)) { toast('Instância já existe'); return null; }
+        if (state.instances.length >= state.instancesAllowed) { toast('Limite atingido'); return null; }
+
+        // Chamada opcional ao n8n — ajuste conforme seu fluxo
+        try {
+          createBtn.toggleAttribute('disabled', true);
+          const res = await fetch(CREATE_INSTANCE_WEBHOOK, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ login: state.login, instance: name })
+          });
+          // mesmo que o endpoint não exista, seguimos otimizando UX local
+          const ok = res.ok; // pode validar conteúdo aqui
+          // Atualiza estado local
+          const next = { ...state, instances: dedupe([ ...(state.instances||[]), name ]) };
+          // persiste em localStorage (mantendo o formato original: array com 1 item)
+          try {
+            const raw = localStorage.getItem('authData');
+            if (raw) {
+              const arr = JSON.parse(raw);
+              if (Array.isArray(arr) && arr.length) {
+                arr[0].instances = next.instances;
+                localStorage.setItem('authData', JSON.stringify(arr));
+              }
+            }
+          } catch (_) {}
+          toast('Instância criada');
+          render(next);
+          return next;
+        } catch (e) {
+          toast('Falha ao criar instância');
+          return null;
+        } finally {
+          createBtn.toggleAttribute('disabled', false);
+        }
+      }
+
+      // Boot
+      let state = loadState();
+      if (!state) return; // redireciona no loadState
+      render(state);
+
+      // Ações topo
+      newBtn.addEventListener('click', () => openModal());
+      logoutBtn.addEventListener('click', () => { localStorage.removeItem('authData'); window.location.replace('index.html'); });
+
+      // Modal
+      cancelBtn.addEventListener('click', closeModal);
+      createBtn.addEventListener('click', async () => {
+        const name = instNameEl.value;
+        const updated = await createInstance(state, name);
+        if (updated) { state = updated; closeModal(); }
+      });
+      instNameEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') createBtn.click(); });
+
+      // A11y: fechar modal com ESC
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('open')) closeModal(); });
+    })();
+  </script>
+</body>
+</html>

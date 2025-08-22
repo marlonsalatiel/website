@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR Code • Evolution API</title>
+  <style>
+    :root {
+      --bg: #0b0c0f;
+      --card: #111318;
+      --muted: #8b93a7;
+      --text: #e8ecf2;
+      --brand: #25d366; /* verde WhatsApp */
+      --ok: #2ecc71;
+      --warn: #ffb020;
+      --err: #ff5d5d;
+      --border: #1d2230;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 70% -10%, rgba(37,211,102,.12), transparent 60%),
+                  radial-gradient(900px 500px at -20% 110%, rgba(46,204,113,.10), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 32px;
+    }
+    .shell { width: min(980px, 100%); display: grid; gap: 16px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.0));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      padding: 22px;
+    }
+    .header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .title { font-size: 20px; font-weight: 700; letter-spacing: .2px; }
+    .subtitle { font-size: 13px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 980px){ .grid { grid-template-columns: 1fr; } }
+    label { font-size: 12px; color: var(--muted); display:block; margin-bottom:6px; }
+    .input, .select { width: 100%; padding: 12px 14px; border:1px solid var(--border); background:#0e1117; color:var(--text); border-radius: 12px; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
+    .input:focus, .select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(37,211,102,.15); }
+    .row { display:flex; align-items:end; gap:12px; flex-wrap: wrap; }
+    .btn { appearance: none; border: 0; background: var(--brand); color: white; padding: 12px 18px; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 16px rgba(37,211,102,.35); transition: transform .05s ease, box-shadow .2s ease, opacity .2s; }
+    .btn:hover { box-shadow: 0 8px 24px rgba(37,211,102,.45); }
+    .btn:active { transform: translateY(1px); }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; box-shadow: none; }
+    .btn.secondary { background:#2f3542 }
+
+    .switch { display:flex; align-items:center; gap: 10px; font-size: 13px; color: var(--muted); }
+    .switch input { width: 40px; height: 22px; appearance: none; background:#0e1117; border:1px solid var(--border); border-radius: 22px; position: relative; outline: none; cursor: pointer; transition: background .2s; }
+    .switch input:checked { background: rgba(37,211,102,.35); }
+    .switch input::after { content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .2s ease; }
+    .switch input:checked::after { left:20px; }
+
+    .qrwrap { display:grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 980px){ .qrwrap { grid-template-columns: 1fr; } }
+    .qrbox { background:#0e1117; border:1px dashed var(--border); border-radius: 16px; padding: 10px; display:grid; place-items:center; min-height: 340px; position: relative; }
+    .qrbox img { width: 100%; max-width: 300px; border-radius: 10px; display: none; }
+    .placeholder { color: var(--muted); font-size: 13px; text-align:center; }
+
+    .meta { display:grid; gap: 10px; }
+    .kpis { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .kpi { background:#0e1117; border:1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .kpi .k { font-size: 11px; color: var(--muted); }
+    .kpi .v { font-weight: 800; margin-top: 4px; }
+
+    .status { font-size: 13px; color: var(--muted); display:flex; align-items:center; gap:8px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display:inline-block; }
+    .dot.ok { background: var(--ok); }
+    .dot.err { background: var(--err); }
+    .dot.warn { background: var(--warn); }
+
+    .toast { position: fixed; right: 20px; bottom: 20px; background:#131722; border:1px solid var(--border); color: var(--text); padding: 12px 14px; border-radius: 12px; box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); transition: all .25s ease; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.25); border-top-color: #fff; border-radius: 50%; display:inline-block; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .help { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .link { color: #c8ffd8; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+
+    .hidden{display:none !important;}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="card">
+      <div class="header">
+        <div>
+          <div class="title">QR Code – Evolution API</div>
+          <div class="subtitle">Login/senha + gerenciamento de conexões</div>
+        </div>
+        <div class="switch" title="Atualiza o QR Code automaticamente a cada 10s">
+          <label for="autoRefresh">Auto-refresh</label>
+          <input id="autoRefresh" type="checkbox" />
+        </div>
+      </div>
+      <div style="height:8px"></div>
+
+      <!-- Fase 1: apenas autenticação -->
+      <div class="grid" id="authSection">
+        <div>
+          <label for="login">Login</label>
+          <input id="login" class="input" placeholder="seu_login" autocomplete="username" />
+        </div>
+        <div>
+          <label for="senha">Senha</label>
+          <input id="senha" class="input" placeholder="••••••••" type="password" autocomplete="current-password" />
+        </div>
+        <div class="row">
+          <button class="btn" id="btnListar" type="button">Mostrar instâncias</button>
+        </div>
+      </div>
+
+      <!-- Fase 2: aparece somente após encontrar instâncias -->
+      <div class="grid hidden" id="instSection">
+        <div>
+          <label for="instanceSelect">Instância</label>
+          <select id="instanceSelect" class="select" disabled>
+            <option value="" selected>— selecione uma instância —</option>
+          </select>
+          <div class="help">Incluí a opção "➕ Criar nova conexão" no final da lista.</div>
+        </div>
+        <div>
+          <label for="nomeInst">Nome da nova conexão</label>
+          <input id="nomeInst" class="input" placeholder="ex.: testeMarlon" style="display:none" />
+        </div>
+        <div class="row">
+          <button class="btn" id="btnCriar" type="button" title="Criar nova conexão" style="display:none">Criar nova Conexão</button>
+          <button class="btn secondary" id="btnClear" type="button">Limpar</button>
+        </div>
+      </div>
+
+      <div style="height:10px"></div>
+      <div class="row hidden" id="actionsRow">
+        <button class="btn" id="btnGenerate" type="button">Gerar QR Code</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="qrwrap">
+        <div class="qrbox" id="qrbox">
+          <img id="qrcode" alt="QR Code" />
+          <div class="placeholder" id="placeholder">Sem QR Code ainda. Autentique, liste, selecione ou crie uma conexão e clique em <b>Gerar QR Code</b>.</div>
+        </div>
+        <div class="meta">
+          <div class="kpis">
+            <div class="kpi"><div class="k">Última atualização</div><div class="v" id="kUpdated">—</div></div>
+            <div class="kpi"><div class="k">Tempo de resposta</div><div class="v" id="kLatency">—</div></div>
+            <div class="kpi"><div class="k">Status</div><div class="v" id="kStatus">parado</div></div>
+          </div>
+          <div class="status" id="statusLine"><span class="dot" id="dot"></span><span id="statusText">Aguardando ação</span></div>
+          <div class="help">
+            Endpoint chamado: <span class="mono" id="effectiveUrl">—</span>
+            <br />Doc: <a class="link" href="https://evolution-api.com/" target="_blank" rel="noreferrer">Evolution API</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const BASE = 'https://evolutionapi.msalatiel.com.br';
+
+    const $ = (id) => document.getElementById(id);
+    const login = $('login');
+    const senha = $('senha');
+    const btnListar = $('btnListar');
+    const instanceSelect = $('instanceSelect');
+    const nomeInst = $('nomeInst');
+    const btnCriar = $('btnCriar');
+    const instSection = $('instSection');
+    const actionsRow = $('actionsRow');
+
+    const btnGenerate = $('btnGenerate');
+    const btnClear = $('btnClear');
+    const img = $('qrcode');
+    const placeholder = $('placeholder');
+    const kUpdated = $('kUpdated');
+    const kLatency = $('kLatency');
+    const kStatus = $('kStatus');
+    const statusText = $('statusText');
+    const dot = $('dot');
+    const effectiveUrl = $('effectiveUrl');
+    const autoRefresh = $('autoRefresh');
+    const toast = $('toast');
+
+    let timer = null;
+
+    const LS = { login: 'evo.login', inst: 'evo.instance', auto: 'evo.auto' };
+    login.value = localStorage.getItem(LS.login) || '';
+    instanceSelect.value = localStorage.getItem(LS.inst) || '';
+    autoRefresh.checked = (localStorage.getItem(LS.auto) || 'false') === 'true';
+
+    [login, senha].forEach(inp => inp.addEventListener('change', () => localStorage.setItem(LS.login, login.value.trim())));
+    autoRefresh.addEventListener('change', () => { localStorage.setItem(LS.auto, String(autoRefresh.checked)); handleAuto(); });
+
+    function setStatus(kind, text){ statusText.textContent = text; dot.className = 'dot ' + (kind || ''); }
+    function setKpis({updated='—', latency='—', status='—'}={}){ kUpdated.textContent = updated; kLatency.textContent = latency; kStatus.textContent = status; }
+    function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2200); }
+    function formatDate(d){ try { return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium' }).format(d); } catch { return d.toLocaleString(); } }
+
+    function buildUrl(){
+      const inst = encodeURIComponent(instanceSelect.value.trim());
+      const url = `${BASE.replace(/\/$/, '')}/instance/connect/${inst}`;
+      effectiveUrl.textContent = url; return url;
+    }
+
+    function normalizeInstances(instances){
+      if (!instances) return [];
+      if (Array.isArray(instances)) return instances.map(String);
+      if (typeof instances === 'string') return instances.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+      if (typeof instances === 'object') {
+        try {
+          const keys = Object.keys(instances);
+          if (keys.length && !keys.some(k => k === '0')) return keys;
+        } catch {}
+        try { return Object.values(instances).map(String).filter(Boolean); } catch { return []; }
+      }
+      return [];
+    }
+
+    function extractInstancesFromLogin(resp){
+      // esperado: [ { id, login, password, active, instances: { instances: ["inst1","inst2"] } } ]
+      try {
+        if (Array.isArray(resp) && resp.length){
+          const inner = resp[0];
+          if (inner && inner.instances && Array.isArray(inner.instances.instances)){
+            return inner.instances.instances.map(String);
+          }
+        }
+      } catch {}
+      if (resp && resp.instances) return normalizeInstances(resp.instances);
+      return [];
+    }
+
+    instanceSelect.addEventListener('change', () => {
+      localStorage.setItem(LS.inst, instanceSelect.value);
+      effectiveUrl.textContent = instanceSelect.value && instanceSelect.value !== '__create__' ? buildUrl() : '—';
+      syncUiForSelection();
+    });
+
+    async function postWebhookLogin(body){
+      const url = 'https://n8n.msalatiel.com.br/webhook/login';
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json().catch(() => ({}));
+        return data;
+      } catch (e){ throw e; }
+    }
+
+    btnListar.addEventListener('click', async () => {
+      const user = login.value.trim();
+      const pass = senha.value.trim();
+      if (!user || !pass){ showToast('Informe login e senha.'); return; }
+      btnListar.disabled = true; btnListar.innerHTML = '<span class="spinner"></span>Consultando…';
+      setStatus('warn', 'Validando credenciais e listando instâncias…');
+      try {
+        const payload = { login: user, senha: pass, password: pass }; // robustez
+        const data = await postWebhookLogin(payload);
+        const list = extractInstancesFromLogin(data);
+        populateInstanceSelect(list);
+        setStatus('ok', list.length ? 'Instâncias carregadas' : 'Nenhuma instância encontrada');
+        showToast(list.length ? `Carregado: ${list.length} instância(s)` : 'Sem instâncias para este login');
+      } catch (err){
+        setStatus('err', 'Falha ao listar instâncias');
+        showToast(err.message || 'Erro ao consultar');
+      } finally {
+        btnListar.disabled = false; btnListar.textContent = 'Mostrar instâncias';
+      }
+    });
+
+    function populateInstanceSelect(list){
+      instanceSelect.innerHTML = '<option value="" selected>— selecione uma instância —</option>';
+      list.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name; instanceSelect.appendChild(opt);
+      });
+      const optCreate = document.createElement('option');
+      optCreate.value = '__create__';
+      optCreate.textContent = '➕ Criar nova conexão';
+      instanceSelect.appendChild(optCreate);
+
+      instanceSelect.disabled = list.length === 0;
+      if (list.length) {
+        const prev = localStorage.getItem(LS.inst);
+        if (prev && list.includes(prev)) instanceSelect.value = prev;
+        else instanceSelect.value = list[0];
+        localStorage.setItem(LS.inst, instanceSelect.value);
+      }
+      instSection.classList.remove('hidden');
+      actionsRow.classList.remove('hidden');
+      syncUiForSelection();
+    }
+
+    function syncUiForSelection(){
+      const isCreate = instanceSelect.value === '__create__';
+      nomeInst.style.display = isCreate ? '' : 'none';
+      btnCriar.style.display = isCreate ? '' : 'none';
+      // botão de gerar visível sempre nesta fase, mas desabilita no modo criar
+      btnGenerate.disabled = isCreate || !instanceSelect.value;
+    }
+
+    btnCriar.addEventListener('click', async () => {
+      const nome = nomeInst.value.trim();
+      if (!nome){ showToast('Informe o nome da nova conexão.'); return; }
+      btnCriar.disabled = true; btnCriar.innerHTML = '<span class="spinner"></span>Criando…';
+      setStatus('warn', 'Criando conexão…');
+      try {
+        let data = await postWebhookLogin({ name: nome }).catch(() => null);
+        if (!data) { data = await postWebhookLogin({ nome: nome }).catch(() => null); }
+        if (!data) throw new Error('Falha ao criar conexão');
+
+        const list = extractInstancesFromLogin(data);
+        if (list.length){
+          populateInstanceSelect(list);
+          if (list.includes(nome)) { instanceSelect.value = nome; localStorage.setItem(LS.inst, nome); }
+        }
+        setStatus('ok', 'Conexão criada');
+        showToast('Conexão criada com sucesso');
+      } catch (err){
+        setStatus('err', 'Erro ao criar conexão');
+        showToast(err.message || 'Erro ao criar');
+      } finally {
+        btnCriar.disabled = false; btnCriar.textContent = 'Criar nova Conexão';
+      }
+    });
+
+    async function gerarQRCode(){
+      const inst = instanceSelect.value.trim();
+      if (!inst || inst === '__create__'){ showToast('Selecione uma instância válida.'); instanceSelect.focus(); return; }
+
+      const url = buildUrl();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+
+      btnGenerate.disabled = true; btnGenerate.innerHTML = '<span class="spinner"></span>Gerando…';
+      setStatus('warn', 'Chamando Evolution API…');
+      setKpis({ status: 'em progresso' });
+
+      const t0 = performance.now();
+      try {
+        const res = await fetch(url, { method: 'GET', signal: controller.signal });
+        clearTimeout(timeout);
+        const t1 = performance.now();
+        const latency = Math.max(1, Math.round(t1 - t0));
+
+        if (!res.ok) {
+          const text = await res.text().catch(()=> '');
+          throw new Error(`HTTP ${res.status} – ${text || res.statusText}`);
+        }
+
+        let data = {};
+        try { data = await res.json(); } catch { throw new Error('Resposta não é JSON válido.'); }
+
+        const raw = data.base64 || data.qr || data.qrCode || '';
+        if (!raw) throw new Error('QR Code não encontrado no payload.');
+
+        const src = raw.startsWith('data:image') ? raw : `data:image/png;base64,${raw.replace(/^\s+|\s+$/g,'')}`;
+
+        placeholder.style.display = 'none';
+        img.src = src; img.style.display = 'block';
+
+        setStatus('ok', 'QR Code atualizado com sucesso');
+        setKpis({ updated: formatDate(new Date()), latency: `${latency} ms`, status: 'ok' });
+      } catch (err){
+        clearTimeout(timeout);
+        console.error(err);
+        setStatus('err', 'Falha ao atualizar QR');
+        setKpis({ status: 'erro' });
+        showToast(err.message || 'Erro ao gerar QR Code');
+      } finally {
+        btnGenerate.disabled = false; btnGenerate.textContent = 'Gerar QR Code';
+      }
+    }
+
+    function clearAll(){
+      img.src = ''; img.style.display = 'none';
+      placeholder.style.display = 'block';
+      setStatus('', 'Aguardando ação');
+      setKpis({ updated: '—', latency: '—', status: 'parado' });
+    }
+
+    function handleAuto(){
+      if (timer) { clearInterval(timer); timer = null; }
+      if (autoRefresh.checked){
+        timer = setInterval(() => gerarQRCode().catch(()=>{}), 10000);
+        showToast('Auto-refresh ligado (10s)');
+      } else {
+        showToast('Auto-refresh desligado');
+      }
+    }
+
+    btnGenerate.addEventListener('click', gerarQRCode);
+    btnClear.addEventListener('click', clearAll);
+
+    [login, senha, nomeInst].forEach(inp => inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (inp === nomeInst) btnCriar.click(); else btnListar.click();
+      }
+    }));
+
+    handleAuto();
+  </script>
+</body>
+</html>
