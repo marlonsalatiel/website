@@ -6,126 +6,66 @@
   <meta name="color-scheme" content="dark light" />
   <title>ZapLution — Login</title>
   <style>
-    :root {
-      --bg: #0b0f0c;
-      --card: #111614;
-      --muted: #a0afa8;
-      --text: #e8f2ee;
-      --line: #1d2622;
-      --wa: #25d366;         /* WhatsApp Green */
-      --wa-dark: #128c7e;    /* WhatsApp Dark Green */
-      --danger: #ef4444;
-      --ok: #22c55e;
-      --focus: #30e57b;
-      --shadow: 0 10px 30px rgba(0,0,0,.5);
+    :root{
+      --bg:#0b0f0c;--card:#111614;--muted:#a0afa8;--text:#e8f2ee;--line:#1d2622;
+      --wa:#25d366;--wa-dark:#128c7e;--danger:#ef4444;--ok:#22c55e;--focus:#30e57b;
+      --shadow:0 10px 30px rgba(0,0,0,.5);
     }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 10% 10%, rgba(37,211,102,.08), transparent 60%) ,
-                  radial-gradient(900px 600px at 90% 90%, rgba(18,140,126,.08), transparent 60%),
-                  var(--bg);
-      color: var(--text);
-      display: grid; place-items: center;
-      padding: clamp(16px, 2vw, 32px);
+    *{box-sizing:border-box}html,body{height:100%}
+    body{
+      margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      background:radial-gradient(1200px 800px at 10% 10%, rgba(37,211,102,.08), transparent 60%),
+                 radial-gradient(900px 600px at 90% 90%, rgba(18,140,126,.08), transparent 60%),var(--bg);
+      color:var(--text);display:grid;place-items:center;padding:clamp(16px,2vw,32px);
     }
-
-    .shell { width: min(480px, 100%); }
-
-    .brand {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 18px; user-select: none;
+    .shell{width:min(480px,100%)}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px;user-select:none}
+    .logo{width:36px;height:36px;border-radius:10px;background:
+      conic-gradient(from 180deg at 50% 50%, var(--wa) 0 25%, var(--wa-dark) 25% 50%, #1f8f64 50% 75%, #1a7b56 75% 100%);
+      box-shadow:inset 0 0 0 2px rgba(255,255,255,.06),var(--shadow)
     }
-    .logo {
-      width: 36px; height: 36px; border-radius: 10px; background:
-        conic-gradient(from 180deg at 50% 50%, var(--wa) 0 25%, var(--wa-dark) 25% 50%, #1f8f64 50% 75%, #1a7b56 75% 100%);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.06), var(--shadow);
+    .brand h1{font-size:18px;letter-spacing:.5px;margin:0;font-weight:600}
+    .brand small{color:var(--muted);display:block;font-weight:500}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)),var(--card);
+      border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(6px)}
+    form{display:grid;gap:14px}label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    .field{display:grid;gap:6px}.input,.password-wrap{position:relative}
+    input[type="text"],input[type="password"]{
+      width:100%;padding:14px 14px;border-radius:12px;border:1px solid var(--line);
+      background:#0d1310;color:var(--text);outline:none;transition:border-color .2s, box-shadow .2s;
     }
-    .brand h1 { font-size: 18px; letter-spacing: .5px; margin: 0; font-weight: 600; }
-    .brand small { color: var(--muted); display: block; font-weight: 500; }
-
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)) , var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
+    input::placeholder{color:#7f8f88}input:focus{border-color:var(--focus);box-shadow:0 0 0 3px rgba(48,229,123,.15)}
+    .password-wrap input{padding-right:44px}
+    .toggle-visibility{
+      position:absolute;right:6px;top:6px;height:36px;width:36px;display:grid;place-items:center;
+      border:1px solid var(--line);border-radius:10px;background:#0f1512;color:var(--muted);cursor:pointer;
+      transition:border-color .2s, transform .05s;
     }
-
-    form { display: grid; gap: 14px; }
-    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
-
-    .field { display: grid; gap: 6px; }
-    .input, .password-wrap { position: relative; }
-
-    input[type="text"], input[type="password"] {
-      width: 100%;
-      padding: 14px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: #0d1310;
-      color: var(--text);
-      outline: none;
-      transition: border-color .2s ease, box-shadow .2s ease;
+    .toggle-visibility:hover{border-color:var(--wa)}.toggle-visibility:active{transform:scale(.98)}
+    .cta{
+      position:relative;display:inline-grid;place-items:center;height:48px;border-radius:12px;border:0;cursor:pointer;font-weight:600;
+      background:linear-gradient(180deg, var(--wa), var(--wa-dark));color:#02140d;letter-spacing:.2px;
+      box-shadow:0 6px 16px rgba(37,211,102,.25);transition:transform .04s, filter .2s, opacity .2s;
     }
-    input::placeholder { color: #7f8f88; }
-    input:focus { border-color: var(--focus); box-shadow: 0 0 0 3px rgba(48,229,123,.15); }
-
-    .password-wrap input { padding-right: 44px; }
-    .toggle-visibility {
-      position: absolute; right: 6px; top: 6px;
-      height: 36px; width: 36px;
-      display: grid; place-items: center;
-      border: 1px solid var(--line); border-radius: 10px;
-      background: #0f1512; color: var(--muted);
-      cursor: pointer;
-      transition: border-color .2s ease, transform .05s ease;
+    .cta:hover{filter:brightness(1.05)}.cta:active{transform:translateY(1px)}.cta[disabled]{opacity:.6;cursor:not-allowed}
+    .cta[data-loading="1"]::after{
+      content:"";width:18px;height:18px;border-radius:50%;border:2px solid #063b2f;border-top-color:#e5fff4;
+      position:absolute;right:14px;animation:spin 1s linear infinite;
     }
-    .toggle-visibility:hover { border-color: var(--wa); }
-    .toggle-visibility:active { transform: scale(.98); }
-
-    .cta {
-      position: relative;
-      display: inline-grid; place-items: center;
-      height: 48px; border-radius: 12px; border: 0; cursor: pointer; font-weight: 600;
-      background: linear-gradient(180deg, var(--wa), var(--wa-dark));
-      color: #02140d; letter-spacing: .2px;
-      box-shadow: 0 6px 16px rgba(37,211,102,.25);
-      transition: transform .04s ease, filter .2s ease, opacity .2s ease;
-    }
-    .cta:hover { filter: brightness(1.05); }
-    .cta:active { transform: translateY(1px); }
-    .cta[disabled] { opacity: .6; cursor: not-allowed; }
-    .cta[data-loading="1"]::after {
-      content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #063b2f; border-top-color: #e5fff4;
-      position: absolute; right: 14px; animation: spin 1s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .helper-row { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
-    .helper-row a { color: var(--muted); font-size: 12px; text-decoration: none; }
-    .helper-row a:hover { color: var(--text); }
-
-    .status { margin-top: 10px; font-size: 13px; color: var(--muted); min-height: 20px; }
-    .status.ok { color: var(--ok); }
-    .status.err { color: var(--danger); }
-
-    .footer { margin-top: 16px; text-align: center; color: var(--muted); font-size: 12px; }
-
-    @media (prefers-reduced-motion: reduce) {
-      * { animation: none !important; transition: none !important; }
-    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .helper-row{display:flex;align-items:center;justify-content:space-between;margin-top:2px}
+    .helper-row a{color:var(--muted);font-size:12px;text-decoration:none}.helper-row a:hover{color:var(--text)}
+    .status{margin-top:10px;font-size:13px;color:var(--muted);min-height:20px}
+    .status.ok{color:var(--ok)}.status.err{color:var(--danger)}
+    .footer{margin-top:16px;text-align:center;color:var(--muted);font-size:12px}
+    @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="brand">
       <div class="logo" aria-hidden="true"></div>
-      <div>
-        <h1>ZapLution <small>acesso seguro</small></h1>
-      </div>
+      <div><h1>ZapLution <small>acesso seguro</small></h1></div>
     </div>
 
     <section class="card" role="region" aria-labelledby="loginTitle">
@@ -135,35 +75,28 @@
           <label for="login">Login</label>
           <input class="input" id="login" name="login" type="text" inputmode="email" autocomplete="username" placeholder="seu login" required />
         </div>
-
         <div class="field">
           <label for="senha">Senha</label>
           <div class="password-wrap">
             <input class="input" id="senha" name="senha" type="password" autocomplete="current-password" placeholder="••••••••" required />
             <button class="toggle-visibility" type="button" aria-controls="senha" aria-label="Mostrar senha" title="Mostrar/ocultar">
-              <!-- simple eye icon -->
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/>
-                <circle cx="12" cy="12" r="3"/>
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>
               </svg>
             </button>
           </div>
         </div>
-
         <button id="submit" class="cta" type="submit" aria-label="Entrar">Entrar</button>
         <div id="status" class="status" role="status" aria-live="polite"></div>
       </form>
-      <div class="helper-row" aria-hidden="true">
-        <span></span>
-        <a href="#">Esqueceu a senha?</a>
-      </div>
+      <div class="helper-row" aria-hidden="true"><span></span><a href="#">Esqueceu a senha?</a></div>
     </section>
 
     <p class="footer">© <span id="y"></span> ZapLution. Todos os direitos reservados.</p>
   </div>
 
   <script>
-    (function() {
+    (function(){
       const WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/login';
       const form = document.getElementById('login-form');
       const loginEl = document.getElementById('login');
@@ -171,84 +104,62 @@
       const statusEl = document.getElementById('status');
       const submitBtn = document.getElementById('submit');
       const eyeBtn = document.querySelector('.toggle-visibility');
-      const year = new Date().getFullYear();
-      document.getElementById('y').textContent = year;
+      document.getElementById('y').textContent = new Date().getFullYear();
 
-      function setStatus(msg, kind) {
+      function setStatus(msg, kind){
         statusEl.textContent = msg || '';
-        statusEl.classList.remove('ok', 'err');
-        if (kind === 'ok') statusEl.classList.add('ok');
-        if (kind === 'err') statusEl.classList.add('err');
+        statusEl.classList.remove('ok','err');
+        if(kind==='ok') statusEl.classList.add('ok');
+        if(kind==='err') statusEl.classList.add('err');
       }
-
-      function setLoading(on) {
+      function setLoading(on){
         submitBtn.toggleAttribute('disabled', !!on);
         submitBtn.dataset.loading = on ? '1' : '';
       }
-
-      eyeBtn.addEventListener('click', () => {
+      eyeBtn.addEventListener('click', ()=>{
         const isPw = senhaEl.getAttribute('type') === 'password';
         senhaEl.setAttribute('type', isPw ? 'text' : 'password');
         eyeBtn.setAttribute('aria-label', isPw ? 'Ocultar senha' : 'Mostrar senha');
       });
 
-      form.addEventListener('submit', async (e) => {
+      form.addEventListener('submit', async (e)=>{
         e.preventDefault();
-        const login = String(loginEl.value || '').trim();
-        const senha = String(senhaEl.value || '');
-        if (!login || !senha) { setStatus('Preencha login e senha.', 'err'); return; }
+        const login = String(loginEl.value||'').trim();
+        const senha = String(senhaEl.value||'');
+        if(!login || !senha){ setStatus('Preencha login e senha.', 'err'); return; }
 
-        // Timeout de rede defensivo
-        const ctr = new AbortController();
-        const t = setTimeout(() => ctr.abort(), 15000);
-
-        try {
-          setLoading(true);
-          setStatus('Autenticando…');
+        const ctr = new AbortController(); const t = setTimeout(()=>ctr.abort(), 15000);
+        try{
+          setLoading(true); setStatus('Autenticando…');
           const res = await fetch(WEBHOOK, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ login, senha }),
-            signal: ctr.signal
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ login, senha }), signal: ctr.signal
           });
-
           const raw = await res.text();
-          const trimmed = (raw || '').trim();
+          const trimmed = (raw||'').trim();
 
-          if (!trimmed) {
-            setStatus('Credenciais inválidas.', 'err');
-            return;
-          }
+          if(!trimmed){ setStatus('Credenciais inválidas.', 'err'); return; }
 
-          // Tenta interpretar como JSON, mas não depende disso para validar
+          // Normaliza e persiste o retorno
           let parsed = null;
-          try { parsed = JSON.parse(trimmed); } catch (_) {}
-
-          // Persistência mínima para próximo passo do app
-          try { localStorage.setItem('authData', trimmed); } catch (_) {}
+          try{ parsed = JSON.parse(trimmed); }catch(_){}
+          try{
+            if(parsed!=null) localStorage.setItem('authData', JSON.stringify(parsed));
+            else localStorage.setItem('authData', trimmed);
+          }catch(_){}
 
           setStatus('Login efetuado com sucesso.', 'ok');
-
-          // TODO: redirecionar para o app após login
-          // index.html (login)
-		  window.location.href = 'dash.html';
-
-        } catch (err) {
-          if (err.name === 'AbortError') {
-            setStatus('Tempo de conexão excedido. Tente novamente.', 'err');
-          } else {
-            setStatus('Falha na conexão ou CORS bloqueado no webhook.', 'err');
-          }
-        } finally {
-          clearTimeout(t);
-          setLoading(false);
+          // Redirect para o dashboard
+          window.location.href = 'dash.html';
+        }catch(err){
+          setStatus(err?.name==='AbortError'?'Tempo de conexão excedido. Tente novamente.':'Falha na conexão ou CORS bloqueado no webhook.','err');
+        }finally{
+          clearTimeout(t); setLoading(false);
         }
       });
 
-      // Qualidade de vida: Enter no campo senha dispara submit
-      senhaEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') form.requestSubmit();
-      });
+      // QoL
+      senhaEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') form.requestSubmit(); });
     })();
   </script>
 </body>
