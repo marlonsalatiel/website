@@ -139,27 +139,32 @@
       function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
 
       // Parser resiliente do authData
-      function parseAuth(){
-        const raw = localStorage.getItem('authData');
-        if(!raw) return null;
+      function parseAuth() {
+  const raw = localStorage.getItem('authData');
+  if (!raw) return null;
 
-        // 1) JSON direto (array ou objeto)
-        try{
-          let data = JSON.parse(raw);
-          if(Array.isArray(data)) return data[0] || null;
-          if(data && typeof data === 'object') return data;
-        }catch(_){}
+  function deepParse(x) {
+    let s = x;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const p = typeof s === 'string' ? JSON.parse(s) : s;
+        if (p && (Array.isArray(p) || typeof p === 'object')) return p;
+        s = p;
+      } catch { break; }
+    }
+    const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
+    if (m) { try { return JSON.parse(m[0]); } catch {} }
+    return null;
+  }
 
-        // 2) Extrai primeiro bloco [ ... ] caso venha com ruído
-        try{
-          const m = raw.match(/\[[\s\S]*\]/);
-          if(m){
-            const arr = JSON.parse(m[0]);
-            if(Array.isArray(arr) && arr.length) return arr[0];
-          }
-        }catch(_){}
-        return null;
-      }
+  const data = deepParse(raw);
+  if (!data) return null;
+
+  const obj = Array.isArray(data) ? (data[0] || null) : data;
+  if (!obj || typeof obj !== 'object') return null;
+  return obj;
+}
+
 
       function sanitizeName(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,''); }
       function dedupe(arr){ const seen=new Set(),out=[]; for(const x of arr||[]){ const k=String(x); if(!seen.has(k)){ seen.add(k); out.push(k); } } return out; }

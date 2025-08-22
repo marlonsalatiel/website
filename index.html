@@ -135,22 +135,55 @@
             method:'POST', headers:{'Content-Type':'application/json'},
             body:JSON.stringify({ login, senha }), signal: ctr.signal
           });
-          const raw = await res.text();
-          const trimmed = (raw||'').trim();
+          // ... após receber a resposta do fetch:
+const raw = await res.text();
+const trimmed = (raw || "").trim();
 
-          if(!trimmed){ setStatus('Credenciais inválidas.', 'err'); return; }
+if (!trimmed) {
+  setStatus('Credenciais inválidas.', 'err');
+  return;
+}
 
-          // Normaliza e persiste o retorno
-          let parsed = null;
-          try{ parsed = JSON.parse(trimmed); }catch(_){}
-          try{
-            if(parsed!=null) localStorage.setItem('authData', JSON.stringify(parsed));
-            else localStorage.setItem('authData', trimmed);
-          }catch(_){}
+// Normalizador robusto: resolve JSON duplamente codificado, string com [ ... ], etc.
+function deepParseJson(x) {
+  let s = x;
+  // tenta parsear até 3 vezes se vier "string de JSON"
+  for (let i = 0; i < 3; i++) {
+    try {
+      const p = typeof s === 'string' ? JSON.parse(s) : s;
+      // se virou objeto/array, retorna
+      if (p && (Array.isArray(p) || typeof p === 'object')) return p;
+      // se virou string de novo, continua
+      s = p;
+    } catch {
+      break;
+    }
+  }
+  // fallback: tenta extrair primeiro bloco [ ... ]
+  const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
+  if (m) {
+    try { return JSON.parse(m[0]); } catch {}
+  }
+  return null;
+}
 
-          setStatus('Login efetuado com sucesso.', 'ok');
-          // Redirect para o dashboard
-          window.location.href = 'dash.html';
+const parsed = deepParseJson(trimmed);
+if (!parsed) {
+  setStatus('Retorno inválido do servidor.', 'err');
+  return;
+}
+
+// Canoniza: SEMPRE salva como array com 1 objeto (o primeiro item se vier array)
+const obj = Array.isArray(parsed) ? (parsed[0] || null) : parsed;
+if (!obj || typeof obj !== 'object' || !obj.login) {
+  setStatus('Retorno sem credenciais válidas.', 'err');
+  return;
+}
+localStorage.setItem('authData', JSON.stringify([obj]));
+
+setStatus('Login efetuado com sucesso.', 'ok');
+window.location.href = 'dash.html';
+
         }catch(err){
           setStatus(err?.name==='AbortError'?'Tempo de conexão excedido. Tente novamente.':'Falha na conexão ou CORS bloqueado no webhook.','err');
         }finally{
