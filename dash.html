@@ -72,20 +72,19 @@
 <body>
   <div class="wrap">
     <header class="topbar">
-  <div class="brand">
-    <div class="logo" aria-hidden="true"></div>
-    <div>
-      <h1>ZapLution</h1>
-      <div id="usage" class="pill">Inicializando…</div>
-    </div>
-  </div>
-  <div class="actions">
-    <button id="reloadBtn" class="btn" title="Recarregar status">Recarregar</button>
-    <button id="newBtn" class="btn primary">Nova instância</button>
-    <button id="logoutBtn" class="btn" title="Sair">Sair</button>
-  </div>
-</header>
-
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>ZapLution</h1>
+          <div id="usage" class="pill">Inicializando…</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="reloadBtn" class="btn" title="Recarregar status">Recarregar</button>
+        <button id="newBtn" class="btn primary">Nova instância</button>
+        <button id="logoutBtn" class="btn" title="Sair">Sair</button>
+      </div>
+    </header>
 
     <main class="grid">
       <section class="card sm-6 md-4">
@@ -102,7 +101,7 @@
       <section class="card sm-12 md-4">
         <h3>Observações</h3>
         <p style="color: var(--muted); font-size: 14px; line-height: 1.5">
-          Os dados desta tela vêm do JSON retornado no login e são mantidos localmente. No carregamento, o sistema enriquece as instâncias via webhook <code>/loadinfo</code>.
+          O dashboard carrega suas instâncias do <code>authData</code> e as enriquece via webhook <code>/loadinfo</code>. Formatos antigo e novo são suportados.
         </p>
       </section>
     </main>
@@ -129,330 +128,327 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-(function () {
-  const LOAD_INFO_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/loadinfo';
-  const CREATE_INSTANCE_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/create-instance';
+    (function () {
+      // AJUSTE AQUI se for usar o webhook-test:
+      const LOAD_INFO_WEBHOOK      = 'https://n8n.msalatiel.com.br/webhook/loadinfo';
+      const CREATE_INSTANCE_WEBHOOK= 'https://n8n.msalatiel.com.br/webhook/create-instance';
 
-  const usageEl   = document.getElementById('usage');
-  const listEl    = document.getElementById('list');
-  const loginTag  = document.getElementById('loginTag');
-  const reloadBtn = document.getElementById('reloadBtn');
-  document.getElementById('y').textContent = new Date().getFullYear();
+      const usageEl   = document.getElementById('usage');
+      const listEl    = document.getElementById('list');
+      const loginTag  = document.getElementById('loginTag');
+      const reloadBtn = document.getElementById('reloadBtn');
+      document.getElementById('y').textContent = new Date().getFullYear();
 
-  const modal     = document.getElementById('modal');
-  const newBtn    = document.getElementById('newBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const createBtn = document.getElementById('createBtn');
-  const instNameEl= document.getElementById('instName');
-  const toastEl   = document.getElementById('toast');
+      const modal     = document.getElementById('modal');
+      const newBtn    = document.getElementById('newBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const createBtn = document.getElementById('createBtn');
+      const instNameEl= document.getElementById('instName');
+      const toastEl   = document.getElementById('toast');
 
-  function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); }
-  function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); instNameEl.value=''; instNameEl.focus(); }
-  function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+      function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); }
+      function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); instNameEl.value=''; instNameEl.focus(); }
+      function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
 
-  // === Sessão ================================================================
-  function deepParse(x){
-    let s = x;
-    for(let i=0;i<3;i++){
-      try{
-        const p = typeof s === 'string' ? JSON.parse(s) : s;
-        if(p && (Array.isArray(p) || typeof p === 'object')) return p;
-        s = p;
-      }catch{ break; }
-    }
-    const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
-    if(m){ try{ return JSON.parse(m[0]); }catch{} }
-    return null;
-  }
-  function parseAuth(){
-    const raw = localStorage.getItem('authData');
-    if(!raw) return null;
-    const data = deepParse(raw);
-    const obj = Array.isArray(data) ? (data?.[0] || null) : data;
-    return (obj && typeof obj === 'object') ? obj : null;
-  }
+      // ---------------- Sessão / Parser ----------------
+      function deepParse(x){
+        let s = x;
+        for(let i=0;i<3;i++){
+          try{
+            const p = typeof s === 'string' ? JSON.parse(s) : s;
+            if(p && (Array.isArray(p) || typeof p === 'object')) return p;
+            s = p;
+          }catch{ break; }
+        }
+        const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
+        if(m){ try{ return JSON.parse(m[0]); }catch{} }
+        return null;
+      }
 
-  function sanitizeName(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,''); }
-  function dedupe(arr){ const seen=new Set(),out=[]; for(const x of arr||[]){ const k=String(x); if(!seen.has(k)){ seen.add(k); out.push(k); } } return out; }
+      // Extrai instâncias quando authData já vem no formato "novo" (array com results[].data[].name)
+      function extractInstanceNamesFromNewFormat(arr){
+        const out = [];
+        for(const block of arr || []){
+          const first = Array.isArray(block?.results) ? block.results[0] : null;
+          const info  = first && Array.isArray(first.data) ? first.data[0] : null;
+          const name  = info?.name;
+          if(name) out.push(String(name));
+        }
+        return out;
+      }
 
-  function statusColor(status){
-    const s = String(status||'').toLowerCase();
-    if(s==='open') return 'var(--ok)';
-    if(s==='closed') return 'var(--danger)';
-    return 'var(--warn)';
-  }
-  function formatPhoneFromJid(ownerJid){
-    const raw = (ownerJid||'').split('@')[0] || '';
-    if(/^\d{12,15}$/.test(raw)){
-      let s = raw;
-      if(s.startsWith('55')) s = '+'+s.slice(0,2)+' '+s.slice(2);
-      return s;
-    }
-    return raw || '—';
-  }
+      // Retorna um "estado" unificado independente do formato salvo
+      function loadState(){
+        const raw = localStorage.getItem('authData');
+        if(!raw) return null;
+        const data = deepParse(raw);
+        if(!data) return null;
 
-  function instanceCardHtml(name, info){
-    const pic = info?.profilePicUrl || '';
-    const phone = formatPhoneFromJid(info?.ownerJid);
-    const dot = statusColor(info?.connectionStatus);
-    const display = info?.name || name;
-    const subtitle = [info?.connectionStatus ? `status: ${info.connectionStatus}` : null, phone ? `tel: ${phone}` : null]
-      .filter(Boolean).join(' · ');
-    return `
-      <div class="inst-item">
-        <div class="inst-meta">
-          <img class="avatar" src="${pic}" alt="Avatar ${display}" onerror="this.style.display='none'">
-          <span class="dot" style="background:${dot}" title="${info?.connectionStatus||'desconhecido'}"></span>
-          <div style="display:flex;flex-direction:column;min-width:0">
-            <span class="name" title="${display}">${display}</span>
-            <span class="sub">${subtitle || ''}</span>
-          </div>
-        </div>
-        <div class="row-actions">
-          <button class="btn" data-act="copy" data-name="${display}" title="Copiar nome">Copiar</button>
-        </div>
-      </div>
-    `;
-  }
+        // Caso 1: formato novo (array com wrappers)
+        if(Array.isArray(data) && data.length && data[0]?.results){
+          const instances = extractInstanceNamesFromNewFormat(data);
+          return {
+            login: '—',                  // não vem login nesse formato
+            instancesAllowed: instances.length || 0,
+            instances
+          };
+        }
 
-  function renderBase(state){
-    const login = state.login ?? '—';
-    const allowed = Number(state.instancesAllowed ?? 0);
-    const instances = dedupe(Array.isArray(state.instances) ? state.instances : []);
-    const used = instances.length;
+        // Caso 2: formato antigo (objeto com instances/instancesAllowed) ou array[0]
+        const obj = Array.isArray(data) ? (data[0] || {}) : data;
+        const instances = Array.isArray(obj.instances) ? obj.instances : [];
+        return {
+          login: obj.login || '—',
+          instancesAllowed: Number(obj.instancesAllowed || instances.length || 0),
+          instances
+        };
+      }
 
-    loginTag.textContent = `Usuário: ${login}`;
-    usageEl.textContent  = `${used}/${allowed} em uso`;
-    newBtn.toggleAttribute('disabled', used >= allowed);
+      // ---------------- Utils ----------------
+      function sanitizeName(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,''); }
+      function dedupe(arr){ const seen=new Set(),out=[]; for(const x of arr||[]){ const k=String(x); if(!seen.has(k)){ seen.add(k); out.push(k); } } return out; }
+      function statusColor(status){
+        const s = String(status||'').toLowerCase();
+        if(s==='open') return 'var(--ok)';
+        if(s==='close' || s==='closed') return 'var(--danger)';
+        return 'var(--warn)';
+      }
+      function formatPhoneFromJid(ownerJid){
+        const raw = (ownerJid||'').split('@')[0] || '';
+        if(/^\d{12,15}$/.test(raw)){
+          let s = raw; if(s.startsWith('55')) s = '+'+s.slice(0,2)+' '+s.slice(2);
+          return s;
+        }
+        return raw || '—';
+      }
 
-    listEl.innerHTML = '';
-    if(!instances.length){
-      const empty = document.createElement('div');
-      empty.className = 'inst-item';
-      empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
-      listEl.appendChild(empty);
-    }else{
-      // placeholder enquanto sincroniza
-      for(const name of instances){
-        const row = document.createElement('div');
-        row.className = 'inst-item';
-        row.innerHTML = `
-          <div class="inst-meta">
-            <span class="dot" style="background: var(--warn)" title="sincronizando"></span>
-            <div style="display:flex;flex-direction:column;min-width:0">
-              <span class="name" title="${name}">${name}</span>
-              <span class="sub">carregando…</span>
+      // ---------------- UI ----------------
+      function instanceCardHtml(name, info){
+        const pic = info?.profilePicUrl || '';
+        const phone = formatPhoneFromJid(info?.ownerJid);
+        const dot = statusColor(info?.connectionStatus);
+        const display = info?.name || name;
+        const subtitle = [info?.connectionStatus ? `status: ${info.connectionStatus}` : null, phone ? `tel: ${phone}` : null]
+          .filter(Boolean).join(' · ');
+        return `
+          <div class="inst-item">
+            <div class="inst-meta">
+              <img class="avatar" src="${pic}" alt="Avatar ${display}" onerror="this.style.display='none'">
+              <span class="dot" style="background:${dot}" title="${info?.connectionStatus||'desconhecido'}"></span>
+              <div style="display:flex;flex-direction:column;min-width:0">
+                <span class="name" title="${display}">${display}</span>
+                <span class="sub">${subtitle || ''}</span>
+              </div>
+            </div>
+            <div class="row-actions">
+              <button class="btn" data-act="copy" data-name="${display}" title="Copiar nome">Copiar</button>
             </div>
           </div>
-          <div class="row-actions">
-            <button class="btn" data-act="copy" data-name="${name}" title="Copiar nome">Copiar</button>
-          </div>`;
-        listEl.appendChild(row);
+        `;
       }
-      listEl.querySelectorAll('button[data-act="copy"]').forEach(btn=>{
-        btn.addEventListener('click', async ()=>{
-          try{ await navigator.clipboard.writeText(btn.dataset.name||''); toast('Nome copiado'); }
-          catch{ toast('Falhou ao copiar'); }
-        });
-      });
-    }
-  }
 
-  function renderWithInfos(state, infosByName){
-    const instances = dedupe(Array.isArray(state.instances) ? state.instances : []);
-    listEl.innerHTML = '';
-    if(!instances.length){
-      const empty = document.createElement('div');
-      empty.className = 'inst-item';
-      empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
-      listEl.appendChild(empty);
-      return;
-    }
-    for(const originalName of instances){
-      const info = infosByName?.[originalName] || null;
-      const wrap = document.createElement('div');
-      wrap.innerHTML = instanceCardHtml(originalName, info);
-      listEl.appendChild(wrap.firstElementChild);
-    }
-    listEl.querySelectorAll('button[data-act="copy"]').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        try{ await navigator.clipboard.writeText(btn.dataset.name||''); toast('Nome copiado'); }
-        catch{ toast('Falhou ao copiar'); }
-      });
-    });
-  }
+      function renderBase(state){
+        const login = state.login ?? '—';
+        const allowed = Number(state.instancesAllowed ?? 0);
+        const instances = dedupe(state.instances);
+        const used = instances.length;
 
-  // === Chamada ao /loadinfo (com logs e timeout) =============================
-  async function fetchLoadInfo(instances) {
-  if (!Array.isArray(instances) || instances.length === 0) {
-    console.warn('[dash] fetchLoadInfo: instances vazio');
-    return {};
-  }
-  const url = LOAD_INFO_WEBHOOK;
-  const payloadJson = JSON.stringify({ instances });
+        loginTag.textContent = `Usuário: ${login}`;
+        usageEl.textContent  = `${used}/${allowed} em uso`;
+        newBtn.toggleAttribute('disabled', used >= allowed);
 
-  // A) POST JSON padrão (pode ter preflight)
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 15000);
-    const res = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      cache: 'no-store',
-      credentials: 'omit',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: payloadJson,
-      signal: ctrl.signal,
-    });
-    const text = await res.text();
-    console.debug('[dash] /loadinfo POST status:', res.status, 'body:', text?.slice(0, 500));
-    clearTimeout(t);
-
-    // Se respondeu array JSON, mapeia pelo "name"
-    try {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) {
-        const map = {};
-        for (const item of parsed) {
-          const info = item && item.data && Array.isArray(item.data) ? item.data[0] : null;
-          if (info && info.name) map[info.name] = info;
-        }
-        return map;
-      }
-    } catch (_) { /* segue para fallback */ }
-  } catch (e) {
-    console.error('[dash] /loadinfo POST falhou:', e?.name || e, e);
-  }
-
-  // B) Fallback sendBeacon (entrega sem CORS; não há resposta)
-  try {
-    const blob = new Blob([payloadJson], { type: 'text/plain;charset=UTF-8' });
-    const ok = navigator.sendBeacon(url, blob);
-    console.debug('[dash] sendBeacon enviado?', ok);
-    // Não há resposta legível; retornamos vazio (UI ficará com placeholders)
-  } catch (e) {
-    console.error('[dash] sendBeacon falhou:', e);
-  }
-
-  // C) Fallback GET sem headers (sem preflight), útil para o /webhook-test “listening”
-  try {
-    const q = encodeURIComponent(payloadJson);
-    const res2 = await fetch(`${url}?instances=${q}`, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
-    console.debug('[dash] GET no-cors disparado. status invisível por no-cors.', res2);
-  } catch (e) {
-    console.error('[dash] GET no-cors falhou:', e);
-  }
-
-  // Sem resposta confiável, devolvemos mapa vazio (UI mantém “carregando…”/warn)
-  return {};
-}
-
-
-  async function hydrate(state){
-    const instances = dedupe(state.instances);
-    if(!instances.length){
-      usageEl.textContent = `${0}/${state.instancesAllowed||0} em uso`;
-      return {};
-    }
-    usageEl.textContent = 'Sincronizando…';
-    const infos = await fetchLoadInfo(instances);
-    usageEl.textContent = `${instances.length}/${state.instancesAllowed||0} em uso`;
-    return infos;
-  }
-
-  async function createInstance(state, nameRaw){
-    const name = sanitizeName(nameRaw);
-    if(!name){ toast('Informe um nome válido'); return null; }
-    if((state.instances||[]).includes(name)){ toast('Instância já existe'); return null; }
-    if((state.instances||[]).length >= state.instancesAllowed){ toast('Limite atingido'); return null; }
-
-    try{
-      createBtn.toggleAttribute('disabled', true);
-      await fetch(CREATE_INSTANCE_WEBHOOK,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ login: state.login, instance: name })
-      });
-      const next = { ...state, instances: dedupe([ ...(state.instances||[]), name ]) };
-
-      // Persiste (array com 1 item)
-      try{
-        const raw = localStorage.getItem('authData');
-        if(raw){
-          let arr=null; try{ arr = JSON.parse(raw); }catch(_){}
-          if(Array.isArray(arr) && arr.length){
-            arr[0].instances = next.instances;
-            localStorage.setItem('authData', JSON.stringify(arr));
-          }else{
-            localStorage.setItem('authData', JSON.stringify([ next ]));
-          }
+        listEl.innerHTML = '';
+        if(!instances.length){
+          const empty = document.createElement('div');
+          empty.className = 'inst-item';
+          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
+          listEl.appendChild(empty);
         }else{
-          localStorage.setItem('authData', JSON.stringify([ next ]));
+          // placeholders enquanto carrega /loadinfo
+          for(const name of instances){
+            const row = document.createElement('div');
+            row.className = 'inst-item';
+            row.innerHTML = `
+              <div class="inst-meta">
+                <span class="dot" style="background: var(--warn)" title="sincronizando"></span>
+                <div style="display:flex;flex-direction:column;min-width:0">
+                  <span class="name" title="${name}">${name}</span>
+                  <span class="sub">carregando…</span>
+                </div>
+              </div>
+              <div class="row-actions">
+                <button class="btn" data-act="copy" data-name="${name}" title="Copiar nome">Copiar</button>
+              </div>`;
+            listEl.appendChild(row);
+          }
+          listEl.querySelectorAll('button[data-act="copy"]').forEach(btn=>{
+            btn.addEventListener('click', async ()=>{
+              try{ await navigator.clipboard.writeText(btn.dataset.name||''); toast('Nome copiado'); }
+              catch{ toast('Falhou ao copiar'); }
+            });
+          });
         }
-      }catch(_){}
+      }
 
-      toast('Instância criada');
-      renderBase(next);
-      const infos = await hydrate(next);
-      renderWithInfos(next, infos);
-      return next;
-    }catch(_){
-      toast('Falha ao criar instância'); return null;
-    }finally{
-      createBtn.toggleAttribute('disabled', false);
-    }
-  }
+      function renderWithInfos(state, infosByName){
+        const instances = dedupe(state.instances);
+        listEl.innerHTML = '';
+        if(!instances.length){
+          const empty = document.createElement('div');
+          empty.className = 'inst-item';
+          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
+          listEl.appendChild(empty);
+          return;
+        }
+        for(const originalName of instances){
+          const info = infosByName?.[originalName] || null;
+          const wrap = document.createElement('div');
+          wrap.innerHTML = instanceCardHtml(originalName, info);
+          listEl.appendChild(wrap.firstElementChild);
+        }
+        listEl.querySelectorAll('button[data-act="copy"]').forEach(btn=>{
+          btn.addEventListener('click', async ()=>{
+            try{ await navigator.clipboard.writeText(btn.dataset.name||''); toast('Nome copiado'); }
+            catch{ toast('Falhou ao copiar'); }
+          });
+        });
+      }
 
-  // === Boot ==================================================================
-  let state = (function loadState(){
-    const data = parseAuth();
-    if(!data){
-      toast('Sessão expirada. Faça login novamente.');
-      setTimeout(()=>{ window.location.replace('index.html'); }, 800);
-      return null;
-    }
-    const s = {
-      id: data.id,
-      login: data.login,
-      active: !!data.active,
-      instancesAllowed: Number(data.instancesAllowed || 0),
-      instances: Array.isArray(data.instances) ? data.instances : []
-    };
-    if(!s.login) toast('Aviso: sessão sem usuário detectado. Refaça o login.');
-    return s;
-  })();
-  if(!state) return;
+      // ---------------- /loadinfo ----------------
+      // Extrai um objeto info a partir de qualquer um dos dois formatos de item
+      function extractInfoFromAny(item){
+        // Formato novo: { results: [ { success, data: [ {...} ] } ], order: [...] }
+        if(item?.results){
+          const first = Array.isArray(item.results) ? item.results[0] : null;
+          const info  = first && Array.isArray(first.data) ? first.data[0] : null;
+          return info || null;
+        }
+        // Formato antigo: { success, data: [ {...} ] }
+        if(item?.success !== undefined && Array.isArray(item.data)){
+          return item.data[0] || null;
+        }
+        return null;
+      }
 
-  // 1) render base
-  renderBase(state);
-  // 2) disparo FORÇADO do webhook on-load
-  (async ()=>{
-    const infos = await hydrate(state);
-    renderWithInfos(state, infos);
-  })();
+      async function fetchLoadInfo(instances){
+        if(!Array.isArray(instances) || !instances.length){
+          console.warn('[dash] fetchLoadInfo: instances vazio');
+          return {};
+        }
+        const body = JSON.stringify({ instances });
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(), 15000);
+        try{
+          const res = await fetch(LOAD_INFO_WEBHOOK, {
+            method:'POST',
+            mode:'cors',
+            cache:'no-store',
+            credentials:'omit',
+            headers:{'Content-Type':'application/json','Accept':'application/json'},
+            body,
+            signal: ctrl.signal
+          });
+          const text = await res.text();
+          let parsed = null;
+          try{ parsed = JSON.parse(text); }catch(_){}
+          if(!Array.isArray(parsed)) return {};
 
-  // Top actions
-  newBtn.addEventListener('click', ()=>openModal());
-  logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('authData'); window.location.replace('index.html'); });
-  reloadBtn.addEventListener('click', async ()=>{
-    renderBase(state);
-    const infos = await hydrate(state);
-    renderWithInfos(state, infos);
-  });
+          const map = {};
+          for(const item of parsed){
+            const info = extractInfoFromAny(item);
+            if(info && info.name) map[info.name] = info;
+          }
+          return map;
+        }catch(e){
+          console.error('[dash] /loadinfo erro:', e?.name || e, e);
+          toast('Falha ao carregar informações das instâncias');
+          return {};
+        }finally{
+          clearTimeout(t);
+        }
+      }
 
-  // Modal
-  cancelBtn.addEventListener('click', closeModal);
-  createBtn.addEventListener('click', async ()=>{
-    const name = instNameEl.value;
-    const updated = await createInstance(state, name);
-    if(updated){ state = updated; closeModal(); }
-  });
-  instNameEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') createBtn.click(); });
+      // ---------------- Criação (opcional) ----------------
+      async function createInstance(state, nameRaw){
+        const name = sanitizeName(nameRaw);
+        if(!name){ toast('Informe um nome válido'); return null; }
+        if((state.instances||[]).includes(name)){ toast('Instância já existe'); return null; }
+        if((state.instances||[]).length >= state.instancesAllowed){ toast('Limite atingido'); return null; }
 
-  // A11y
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeModal(); });
-})();
-</script>
+        try{
+          createBtn.toggleAttribute('disabled', true);
+          await fetch(CREATE_INSTANCE_WEBHOOK,{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ login: state.login, instance: name })
+          });
+          const next = { ...state, instances: dedupe([ ...(state.instances||[]), name ]) };
 
+          // Persiste em authData de forma resiliente (se havia formato novo, guardamos um wrapper mínimo)
+          try{
+            const raw = localStorage.getItem('authData');
+            let data = deepParse(raw) || [];
+            if(Array.isArray(data) && data[0]?.results){
+              // Mantém padrão novo: adiciona um bloco fictício com o nome
+              data.push({ results:[{ success:true, data:[{ name }] }], order:[null] });
+              localStorage.setItem('authData', JSON.stringify(data));
+            }else{
+              localStorage.setItem('authData', JSON.stringify([ next ]));
+            }
+          }catch(_){}
+
+          toast('Instância criada');
+          renderBase(next);
+          const infos = await fetchLoadInfo(next.instances);
+          renderWithInfos(next, infos);
+          return next;
+        }catch(_){
+          toast('Falha ao criar instância'); return null;
+        }finally{
+          createBtn.toggleAttribute('disabled', false);
+        }
+      }
+
+      // ---------------- Boot ----------------
+      let state = loadState();
+      if(!state){
+        toast('Sessão expirada. Faça login novamente.');
+        setTimeout(()=>{ window.location.replace('index.html'); }, 800);
+        return;
+      }
+      state.instances = dedupe(state.instances);
+
+      renderBase(state);
+      (async ()=>{
+        usageEl.textContent = 'Sincronizando…';
+        const infos = await fetchLoadInfo(state.instances);
+        usageEl.textContent = `${state.instances.length}/${state.instancesAllowed||state.instances.length} em uso`;
+        renderWithInfos(state, infos);
+      })();
+
+      // Ações topo
+      newBtn.addEventListener('click', ()=>openModal());
+      logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('authData'); window.location.replace('index.html'); });
+      reloadBtn.addEventListener('click', async ()=>{
+        renderBase(state);
+        usageEl.textContent = 'Sincronizando…';
+        const infos = await fetchLoadInfo(state.instances);
+        usageEl.textContent = `${state.instances.length}/${state.instancesAllowed||state.instances.length} em uso`;
+        renderWithInfos(state, infos);
+      });
+
+      // Modal
+      cancelBtn.addEventListener('click', closeModal);
+      createBtn.addEventListener('click', async ()=>{
+        const name = instNameEl.value;
+        const updated = await createInstance(state, name);
+        if(updated){ state = updated; closeModal(); }
+      });
+      instNameEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') createBtn.click(); });
+
+      // A11y
+      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeModal(); });
+    })();
+  </script>
 </body>
 </html>
