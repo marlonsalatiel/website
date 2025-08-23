@@ -144,50 +144,45 @@ if (!trimmed) {
   return;
 }
 
-// Normalizador robusto + canonização para o dash
+// Normalizador robusto: resolve JSON duplamente codificado, string com [ ... ], etc.
 function deepParseJson(x) {
   let s = x;
+  // tenta parsear até 3 vezes se vier "string de JSON"
   for (let i = 0; i < 3; i++) {
     try {
       const p = typeof s === 'string' ? JSON.parse(s) : s;
+      // se virou objeto/array, retorna
       if (p && (Array.isArray(p) || typeof p === 'object')) return p;
+      // se virou string de novo, continua
       s = p;
-    } catch { break; }
+    } catch {
+      break;
+    }
   }
+  // fallback: tenta extrair primeiro bloco [ ... ]
   const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
-  if (m) { try { return JSON.parse(m[0]); } catch {} }
+  if (m) {
+    try { return JSON.parse(m[0]); } catch {}
+  }
   return null;
 }
 
-// Extrai nomes das instâncias do payload no formato que você mostrou
-function extractInstanceNames(parsed) {
-  const out = [];
-  for (const block of (parsed || [])) {
-    const info = block?.results?.[0]?.data?.[0];
-    if (info?.name) out.push(String(info.name));
-  }
-  // dedupe
-  return Array.from(new Set(out));
+const parsed = deepParseJson(trimmed);
+if (!parsed) {
+  setStatus('Retorno inválido do servidor.', 'err');
+  return;
 }
 
-const parsed = deepParseJson(trimmed);
-if (!parsed) { setStatus('Retorno inválido do servidor.', 'err'); return; }
-
-// Monta objeto canônico esperado pelo dash
-const instances = extractInstanceNames(parsed);
-const obj = {
-  login,                                    // usa o login digitado
-  instancesAllowed: Math.max(4, instances.length), // default 4 (ajuste se tiver cota real)
-  instances,                                // lista deduplicada
-  _rawLoginPayload: parsed                  // guarda bruto para futuras evoluções
-};
-
-// Persiste SEMPRE como array com 1 objeto
+// Canoniza: SEMPRE salva como array com 1 objeto (o primeiro item se vier array)
+const obj = Array.isArray(parsed) ? (parsed[0] || null) : parsed;
+if (!obj || typeof obj !== 'object' || !obj.login) {
+  setStatus('Retorno sem credenciais válidas.', 'err');
+  return;
+}
 localStorage.setItem('authData', JSON.stringify([obj]));
 
 setStatus('Login efetuado com sucesso.', 'ok');
 window.location.href = 'dash.html';
-
 
         }catch(err){
           setStatus(err?.name==='AbortError'?'Tempo de conexão excedido. Tente novamente.':'Falha na conexão ou CORS bloqueado no webhook.','err');
