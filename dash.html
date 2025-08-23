@@ -165,23 +165,68 @@
     if(m){ try{ return JSON.parse(m[0]); }catch{} }
     return null;
   }
-  function parseAuth(){
-    const raw = localStorage.getItem('authData');
-    if(!raw) return null;
-    const data = deepParse(raw);
-    const obj = Array.isArray(data) ? (data?.[0] || null) : data;
-    return (obj && typeof obj === 'object') ? obj : null;
+  function parseAuth() {
+  const raw = localStorage.getItem('authData');
+  if (!raw) return null;
+
+  function deepParse(x) {
+    let s = x;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const p = typeof s === 'string' ? JSON.parse(s) : s;
+        if (p && (Array.isArray(p) || typeof p === 'object')) return p;
+        s = p;
+      } catch { break; }
+    }
+    const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
+    if (m) { try { return JSON.parse(m[0]); } catch {} }
+    return null;
   }
+
+  // Tenta ler objeto canônico salvo no login
+  const data = deepParse(raw);
+  if (Array.isArray(data) && data.length && typeof data[0] === 'object') {
+    const obj = data[0];
+
+    // Se já vier canônico, retorna direto
+    if (obj.login && Array.isArray(obj.instances)) return obj;
+
+    // Fallback: tenta derivar instâncias de um _rawLoginPayload guardado
+    const base = { login: obj.login || '—', instancesAllowed: Number(obj.instancesAllowed || 4) };
+    const payload = obj._rawLoginPayload || obj;
+    const inst = [];
+    for (const block of (payload || [])) {
+      const info = block?.results?.[0]?.data?.[0];
+      if (info?.name) inst.push(String(info.name));
+    }
+    base.instances = Array.from(new Set(inst));
+    return base;
+  }
+
+  // Último fallback: payload bruto diretamente nesse formato
+  if (Array.isArray(data)) {
+    const inst = [];
+    for (const block of data) {
+      const info = block?.results?.[0]?.data?.[0];
+      if (info?.name) inst.push(String(info.name));
+    }
+    return { login: '—', instancesAllowed: Math.max(4, inst.length), instances: Array.from(new Set(inst)) };
+  }
+
+  return null;
+}
+
 
   function sanitizeName(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,''); }
   function dedupe(arr){ const seen=new Set(),out=[]; for(const x of arr||[]){ const k=String(x); if(!seen.has(k)){ seen.add(k); out.push(k); } } return out; }
 
-  function statusColor(status){
-    const s = String(status||'').toLowerCase();
-    if(s==='open') return 'var(--ok)';
-    if(s==='closed') return 'var(--danger)';
-    return 'var(--warn)';
-  }
+  function statusColor(status) {
+  const s = String(status || '').toLowerCase();
+  if (s === 'open')   return 'var(--ok)';
+  if (s === 'closed' || s === 'close') return 'var(--danger)';
+  return 'var(--warn)';
+}
+
   function formatPhoneFromJid(ownerJid){
     const raw = (ownerJid||'').split('@')[0] || '';
     if(/^\d{12,15}$/.test(raw)){
