@@ -284,40 +284,70 @@
   }
 
   // === Chamada ao /loadinfo (com logs e timeout) =============================
-  async function fetchLoadInfo(instances){
-    const body = JSON.stringify({ instances });
-    console.debug('[dash] POST /loadinfo payload:', body);
-    const ctrl = new AbortController();
-    const t = setTimeout(()=>ctrl.abort(), 15000);
-    try{
-      const res = await fetch(LOAD_INFO_WEBHOOK, {
-        method:'POST',
-        mode:'cors',
-        cache:'no-store',
-        credentials:'omit',
-        headers:{'Content-Type':'application/json'},
-        body,
-        signal: ctrl.signal
-      });
-      const text = await res.text();
-      console.debug('[dash] /loadinfo status:', res.status, 'body:', text);
-      let parsed = null;
-      try{ parsed = JSON.parse(text); }catch(_){}
-      if(!Array.isArray(parsed)) return {};
-      const map = {};
-      for(const item of parsed){
-        const info = item && item.data && Array.isArray(item.data) ? item.data[0] : null;
-        if(info && info.name) map[info.name] = info;
-      }
-      return map;
-    }catch(e){
-      console.error('[dash] /loadinfo erro:', e?.name || e, e);
-      toast('Falha ao carregar informações das instâncias');
-      return {};
-    }finally{
-      clearTimeout(t);
-    }
+  async function fetchLoadInfo(instances) {
+  if (!Array.isArray(instances) || instances.length === 0) {
+    console.warn('[dash] fetchLoadInfo: instances vazio');
+    return {};
   }
+  const url = LOAD_INFO_WEBHOOK;
+  const payloadJson = JSON.stringify({ instances });
+
+  // A) POST JSON padrão (pode ter preflight)
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 15000);
+    const res = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-store',
+      credentials: 'omit',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: payloadJson,
+      signal: ctrl.signal,
+    });
+    const text = await res.text();
+    console.debug('[dash] /loadinfo POST status:', res.status, 'body:', text?.slice(0, 500));
+    clearTimeout(t);
+
+    // Se respondeu array JSON, mapeia pelo "name"
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        const map = {};
+        for (const item of parsed) {
+          const info = item && item.data && Array.isArray(item.data) ? item.data[0] : null;
+          if (info && info.name) map[info.name] = info;
+        }
+        return map;
+      }
+    } catch (_) { /* segue para fallback */ }
+  } catch (e) {
+    console.error('[dash] /loadinfo POST falhou:', e?.name || e, e);
+  }
+
+  // B) Fallback sendBeacon (entrega sem CORS; não há resposta)
+  try {
+    const blob = new Blob([payloadJson], { type: 'text/plain;charset=UTF-8' });
+    const ok = navigator.sendBeacon(url, blob);
+    console.debug('[dash] sendBeacon enviado?', ok);
+    // Não há resposta legível; retornamos vazio (UI ficará com placeholders)
+  } catch (e) {
+    console.error('[dash] sendBeacon falhou:', e);
+  }
+
+  // C) Fallback GET sem headers (sem preflight), útil para o /webhook-test “listening”
+  try {
+    const q = encodeURIComponent(payloadJson);
+    const res2 = await fetch(`${url}?instances=${q}`, { method: 'GET', mode: 'no-cors', cache: 'no-store' });
+    console.debug('[dash] GET no-cors disparado. status invisível por no-cors.', res2);
+  } catch (e) {
+    console.error('[dash] GET no-cors falhou:', e);
+  }
+
+  // Sem resposta confiável, devolvemos mapa vazio (UI mantém “carregando…”/warn)
+  return {};
+}
+
 
   async function hydrate(state){
     const instances = dedupe(state.instances);
