@@ -35,18 +35,27 @@
     .btn:hover{filter:brightness(1.05);border-color:#284237}.btn:active{transform:translateY(1px)}
     .btn.primary{border:0;background:linear-gradient(180deg, var(--wa), var(--wa-dark));color:#05231a;box-shadow:0 6px 16px rgba(37,211,102,.25)}
     .btn[disabled]{opacity:.6;cursor:not-allowed}
+
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
     .card{grid-column:span 12;background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
     @media (min-width:640px){.card.sm-6{grid-column:span 6}}
     @media (min-width:960px){.card.md-4{grid-column:span 4}}
+
     .card h3{margin:0 0 10px;font-size:14px;color:var(--muted)}
     .inst-list{display:grid;gap:10px}
-    .inst-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0e1411}
-    .inst-meta{display:flex;align-items:center;gap:10px;min-width:0}
+
+    .inst-item{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);
+      border-radius:12px;background:#0e1411
+    }
+    .inst-meta{display:flex;align-items:center;gap:12px;min-width:0}
+    .avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;border:1px solid var(--line);background:#0b0f0c}
     .dot{width:10px;height:10px;border-radius:999px;background:var(--warn);box-shadow:0 0 0 2px rgba(245,158,11,.15)}
-    .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sub{font-size:12px;color:var(--muted)}
     .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 8px;border-radius:999px}
     .row-actions{display:flex;gap:8px}
+
     .footer{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
     .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
     .modal.open{display:grid}
@@ -91,7 +100,7 @@
       <section class="card sm-12 md-4">
         <h3>Observações</h3>
         <p style="color: var(--muted); font-size: 14px; line-height: 1.5">
-          Os dados desta tela vêm do JSON retornado no login e são mantidos localmente. Para sincronizar com o servidor, atualize o login na página inicial.
+          Os dados desta tela vêm do JSON retornado no login e são mantidos localmente. No carregamento, o sistema enriquece as instâncias via webhook <code>/loadinfo</code>.
         </p>
       </section>
     </main>
@@ -118,66 +127,106 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    (function() {
-      const CREATE_INSTANCE_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/create-instance'; // ajuste conforme seu n8n
+    (function () {
+      const LOAD_INFO_WEBHOOK   = 'https://n8n.msalatiel.com.br/webhook/loadinfo';
+      const CREATE_INSTANCE_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/create-instance'; // ajuste conforme n8n
 
-      const usageEl = document.getElementById('usage');
-      const listEl = document.getElementById('list');
-      const loginTag = document.getElementById('loginTag');
+      const usageEl   = document.getElementById('usage');
+      const listEl    = document.getElementById('list');
+      const loginTag  = document.getElementById('loginTag');
       document.getElementById('y').textContent = new Date().getFullYear();
 
-      const modal = document.getElementById('modal');
-      const newBtn = document.getElementById('newBtn');
+      const modal     = document.getElementById('modal');
+      const newBtn    = document.getElementById('newBtn');
       const logoutBtn = document.getElementById('logoutBtn');
       const cancelBtn = document.getElementById('cancelBtn');
       const createBtn = document.getElementById('createBtn');
-      const instNameEl = document.getElementById('instName');
-      const toastEl = document.getElementById('toast');
+      const instNameEl= document.getElementById('instName');
+      const toastEl   = document.getElementById('toast');
 
       function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); }
       function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); instNameEl.value=''; instNameEl.focus(); }
       function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
 
       // Parser resiliente do authData
-      function parseAuth() {
-  const raw = localStorage.getItem('authData');
-  if (!raw) return null;
-
-  function deepParse(x) {
-    let s = x;
-    for (let i = 0; i < 3; i++) {
-      try {
-        const p = typeof s === 'string' ? JSON.parse(s) : s;
-        if (p && (Array.isArray(p) || typeof p === 'object')) return p;
-        s = p;
-      } catch { break; }
-    }
-    const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
-    if (m) { try { return JSON.parse(m[0]); } catch {} }
-    return null;
-  }
-
-  const data = deepParse(raw);
-  if (!data) return null;
-
-  const obj = Array.isArray(data) ? (data[0] || null) : data;
-  if (!obj || typeof obj !== 'object') return null;
-  return obj;
-}
-
+      function parseAuth(){
+        const raw = localStorage.getItem('authData');
+        if(!raw) return null;
+        function deepParse(x){
+          let s = x;
+          for(let i=0;i<3;i++){
+            try{
+              const p = typeof s === 'string' ? JSON.parse(s) : s;
+              if(p && (Array.isArray(p) || typeof p === 'object')) return p;
+              s = p;
+            }catch{ break; }
+          }
+          const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
+          if(m){ try{ return JSON.parse(m[0]); }catch{} }
+          return null;
+        }
+        const data = deepParse(raw);
+        if(!data) return null;
+        const obj = Array.isArray(data) ? (data[0] || null) : data;
+        return (obj && typeof obj === 'object') ? obj : null;
+      }
 
       function sanitizeName(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,''); }
       function dedupe(arr){ const seen=new Set(),out=[]; for(const x of arr||[]){ const k=String(x); if(!seen.has(k)){ seen.add(k); out.push(k); } } return out; }
 
-      function render(state){
+      function formatPhoneFromJid(ownerJid){
+        const raw = (ownerJid||'').split('@')[0] || '';
+        // Ex.: 5511999998888 -> +55 (11) 99999-8888 (heurística simples)
+        if(/^\d{12,15}$/.test(raw)){
+          let s = raw;
+          if(s.startsWith('55')) s = '+'+s.slice(0,2)+' '+s.slice(2);
+          return s;
+        }
+        return raw || '—';
+      }
+
+      function statusColor(status){
+        const s = String(status||'').toLowerCase();
+        if(s==='open') return 'var(--ok)';
+        if(s==='closed') return 'var(--danger)';
+        return 'var(--warn)';
+      }
+
+      function instanceCardHtml(name, info){
+        const pic = info?.profilePicUrl || '';
+        const phone = formatPhoneFromJid(info?.ownerJid);
+        const dot = statusColor(info?.connectionStatus);
+        const display = info?.name || name;
+        const subtitle = [info?.connectionStatus ? `status: ${info.connectionStatus}` : null, phone ? `tel: ${phone}` : null]
+          .filter(Boolean).join(' · ');
+
+        return `
+          <div class="inst-item">
+            <div class="inst-meta">
+              <img class="avatar" src="${pic}" alt="Avatar ${display}" onerror="this.style.display='none'">
+              <span class="dot" style="background:${dot}" title="${info?.connectionStatus||'desconhecido'}"></span>
+              <div style="display:flex;flex-direction:column;min-width:0">
+                <span class="name" title="${display}">${display}</span>
+                <span class="sub">${subtitle || ''}</span>
+              </div>
+            </div>
+            <div class="row-actions">
+              <button class="btn" data-act="copy" data-name="${display}" title="Copiar nome">Copiar</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function render(state, infosByName){
         if(!state) return;
+
         const login = state.login ?? '—';
         const allowed = Number(state.instancesAllowed ?? 0);
         const instances = dedupe(Array.isArray(state.instances) ? state.instances : []);
         const used = instances.length;
 
         loginTag.textContent = `Usuário: ${login}`;
-        usageEl.textContent = `${used}/${allowed} em uso`;
+        usageEl.textContent  = `${used}/${allowed} em uso`;
         newBtn.toggleAttribute('disabled', used >= allowed);
 
         listEl.innerHTML = '';
@@ -187,19 +236,11 @@
           empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
           listEl.appendChild(empty);
         }else{
-          for(const name of instances){
-            const row = document.createElement('div');
-            row.className = 'inst-item';
-            row.innerHTML = `
-              <div class="inst-meta">
-                <span class="dot" title="status desconhecido"></span>
-                <span class="name">${name}</span>
-              </div>
-              <div class="row-actions">
-                <button class="btn" data-act="copy" data-name="${name}" title="Copiar nome">Copiar</button>
-              </div>
-            `;
-            listEl.appendChild(row);
+          for(const originalName of instances){
+            const info = infosByName?.[originalName] || null;
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = instanceCardHtml(originalName, info);
+            listEl.appendChild(wrapper.firstElementChild);
           }
         }
 
@@ -227,6 +268,32 @@
         };
       }
 
+      async function fetchLoadInfo(instances){
+        // Posta { instances: [...] } e retorna mapa name -> data[0]
+        const body = JSON.stringify({ instances });
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(), 15000);
+        try{
+          const res = await fetch(LOAD_INFO_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body, signal: ctrl.signal });
+          const text = await res.text();
+          let parsed = null;
+          try{ parsed = JSON.parse(text); }catch(_){ parsed = null; }
+          // Esperado: array em que cada posição tem { success, data: [ { ... info ... } ] }
+          if(!Array.isArray(parsed)) return {};
+          const map = {};
+          for(const item of parsed){
+            const info = item && item.data && Array.isArray(item.data) ? item.data[0] : null;
+            if(info && info.name) map[info.name] = info;
+          }
+          return map;
+        }catch(e){
+          toast('Falha ao carregar informações das instâncias');
+          return {};
+        }finally{
+          clearTimeout(t);
+        }
+      }
+
       async function createInstance(state, nameRaw){
         const name = sanitizeName(nameRaw);
         if(!name){ toast('Informe um nome válido'); return null; }
@@ -241,7 +308,7 @@
           });
           const next = { ...state, instances: dedupe([ ...(state.instances||[]), name ]) };
 
-          // Persiste no localStorage no mesmo formato (array com 1 item)
+          // Persiste (array com 1 item)
           try{
             const raw = localStorage.getItem('authData');
             if(raw){
@@ -257,7 +324,12 @@
             }
           }catch(_){}
 
-          toast('Instância criada'); render(next); return next;
+          toast('Instância criada');
+
+          // Recarrega infos para incluir a nova
+          const infos = await fetchLoadInfo(next.instances);
+          render(next, infos);
+          return next;
         }catch(_){
           toast('Falha ao criar instância'); return null;
         }finally{
@@ -268,7 +340,16 @@
       // Boot
       let state = loadState();
       if(!state) return;
-      render(state);
+
+      (async ()=>{
+        const instances = dedupe(state.instances);
+        let infos = {};
+        if(instances.length){
+          infos = await fetchLoadInfo(instances);
+        }
+        render(state, infos);
+      })();
+
       if(!state.login){ toast('Aviso: sessão sem usuário detectado. Refaça o login.'); }
 
       // Ações topo
