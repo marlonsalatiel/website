@@ -100,13 +100,11 @@
     </header>
 
     <main class="grid">
-      <!-- Lado esquerdo maior para a lista -->
       <section class="card sm-12 md-7">
         <h3>Instâncias conectadas</h3>
         <div id="list" class="inst-list" role="list"></div>
       </section>
 
-      <!-- Lado direito menor para o resumo -->
       <section class="card sm-12 md-5">
         <h3>Resumo</h3>
         <div id="summary" style="display:flex;flex-direction:column;gap:8px">
@@ -191,7 +189,6 @@
         return null;
       }
 
-      // Quando authData já vem no formato "novo" (array com results[].data[].name)
       function extractInstanceNamesFromNewFormat(arr){
         const out = [];
         for(const block of arr || []){
@@ -203,7 +200,6 @@
         return out;
       }
 
-      // Minutos transcritos
       function extractMinutes(data){
         if(data && typeof data === 'object' && !Array.isArray(data)){
           return { minTotal: Number(data.minTotal||0), minMonth: Number(data.minMonth||0) };
@@ -260,7 +256,6 @@
         if(s==='close' || s==='closed') return 'var(--danger)';
         return 'var(--warn)';
       }
-      // Máscara: +xx xx x xxxx-xxxx
       function maskPhone(ownerJid){
         const only = (ownerJid||'').split('@')[0] || '';
         const d = only.replace(/\D/g,'');
@@ -270,12 +265,12 @@
           const d1 = d.slice(4,5);
           const p1 = d.slice(5,9);
           const p2 = d.slice(9,13);
-          return `${cc} ${aa} ${d1}${p1}${p2}`;
+          return `${cc} ${aa} ${d1} ${p1}-${p2}`;
         }
         return only || '—';
       }
 
-      // UI (cards)
+      // UI
       function instanceActionsHtml(info){
         const connected = String(info?.connectionStatus||'').toLowerCase()==='open';
         const name = info?.name || '';
@@ -310,6 +305,19 @@
         `;
       }
 
+      // Chamada genérica para connect/disconnect/delete com login+name
+      async function actionWebhook(act, name, login){
+        const url = act==='disconnect' ? DISCONNECT_WEBHOOK
+                  : act==='connect'    ? CONNECT_WEBHOOK
+                  : DELETE_WEBHOOK;
+        const body = JSON.stringify({ login, name });
+        await fetch(url, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body
+        });
+      }
+
       function wireRowActions(container, state){
         container.querySelectorAll('button[data-act]').forEach(btn=>{
           btn.addEventListener('click', async ()=>{
@@ -318,22 +326,15 @@
             if(!name){ toast('Nome inválido.'); return; }
             btn.toggleAttribute('disabled', true);
             try{
-              let url = '';
-              if(act==='disconnect') url = DISCONNECT_WEBHOOK;
-              else if(act==='connect') url = CONNECT_WEBHOOK;
-              else if(act==='delete') url = DELETE_WEBHOOK;
-
-              await fetch(url, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=UTF-8' }, body: name });
+              await actionWebhook(act, name, state.login || '—');
               toast(`${act.charAt(0).toUpperCase()+act.slice(1)} solicitado`);
 
-              // Se deletou, removemos localmente também e persistimos
               if(act==='delete'){
                 const nextInst = (state.instances||[]).filter(i => i !== name);
                 state.instances = nextInst;
                 persistInstances(state);
               }
 
-              // Aguarda propagação e recarrega
               await new Promise(r=>setTimeout(r,1500));
               await reloadInfos(state, /*silent*/true);
             }catch(_){
@@ -364,7 +365,6 @@
           empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma conexão</span></div><span class="tag">Crie a primeira</span>`;
           listEl.appendChild(empty);
         }else{
-          // placeholders enquanto carrega /loadinfo
           for(const name of instances){
             const row = document.createElement('div');
             row.className = 'inst-item';
@@ -403,7 +403,6 @@
         wireRowActions(listEl, state);
       }
 
-      // /loadinfo parsing
       function extractInfoFromAny(item){
         if(item?.results){
           const first = Array.isArray(item.results) ? item.results[0] : null;
@@ -449,7 +448,6 @@
         }
       }
 
-      // Persistência local de instâncias
       function persistInstances(state){
         try{
           const raw = localStorage.getItem('authData');
@@ -465,7 +463,6 @@
         }catch(_){}
       }
 
-      // Fluxos principais
       async function reloadInfos(state, silent=false){
         if(!silent) usageEl.textContent = 'Sincronizando…';
         const infos = await fetchLoadInfo(state.instances);
@@ -481,10 +478,11 @@
 
         try{
           createBtn.toggleAttribute('disabled', true);
+          const body = JSON.stringify({ login: state.login || '—', name });
           await fetch(CREATE_INSTANCE_WEBHOOK, {
             method:'POST',
-            headers:{ 'Content-Type':'text/plain;charset=UTF-8' },
-            body: name
+            headers:{ 'Content-Type':'application/json' },
+            body
           });
 
           state.instances = dedupe([ ...(state.instances||[]), name ]);
