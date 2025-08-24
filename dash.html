@@ -38,24 +38,35 @@
     .btn[disabled]{opacity:.6;cursor:not-allowed}
 
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
-    .card{grid-column:span 12;background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
-    @media (min-width:640px){.card.sm-6{grid-column:span 6}}
-    @media (min-width:960px){.card.md-4{grid-column:span 4}}
+    .card{
+      grid-column:span 12;background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),var(--card);
+      border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);overflow:hidden
+    }
+    @media (min-width:640px){
+      .card.sm-6{grid-column:span 6}
+      .card.sm-12{grid-column:span 12}
+    }
+    @media (min-width:960px){
+      .card.md-4{grid-column:span 4}
+      .card.md-5{grid-column:span 5}
+      .card.md-7{grid-column:span 7}
+    }
 
     .card h3{margin:0 0 10px;font-size:14px;color:var(--muted)}
     .inst-list{display:grid;gap:10px}
 
     .inst-item{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);
-      border-radius:12px;background:#0e1411
+      display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);
+      border-radius:12px;background:#0e1411;overflow:hidden;flex-wrap:wrap
     }
-    .inst-meta{display:flex;align-items:center;gap:12px;min-width:0}
-    .avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;border:1px solid var(--line);background:#0b0f0c}
-    .dot{width:10px;height:10px;border-radius:999px;background:var(--warn);box-shadow:0 0 0 2px rgba(245,158,11,.15)}
+    .inst-meta{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 auto}
+    .avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;border:1px solid var(--line);background:#0b0f0c;flex:0 0 auto}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--warn);box-shadow:0 0 0 2px rgba(245,158,11,.15);flex:0 0 auto}
     .name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .sub{font-size:12px;color:var(--muted)}
+    .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 8px;border-radius:999px}
-    .row-actions{display:flex;gap:8px}
+    .row-actions{display:flex;gap:8px;flex:0 0 auto}
+    .row-actions .btn{height:36px;padding:0 12px;border-radius:8px}
 
     .footer{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
 
@@ -89,11 +100,14 @@
     </header>
 
     <main class="grid">
-      <section class="card sm-6 md-4">
+      <!-- Lado esquerdo maior para a lista -->
+      <section class="card sm-12 md-7">
         <h3>Instâncias conectadas</h3>
         <div id="list" class="inst-list" role="list"></div>
       </section>
-      <section class="card sm-6 md-4">
+
+      <!-- Lado direito menor para o resumo -->
+      <section class="card sm-12 md-5">
         <h3>Resumo</h3>
         <div id="summary" style="display:flex;flex-direction:column;gap:8px">
           <div class="tag" id="loginTag">Usuário: —</div>
@@ -101,7 +115,8 @@
           <div class="tag" id="minsMonthTag">Minutos Transcritos (Esse mês): —</div>
         </div>
       </section>
-      <section class="card sm-12 md-4">
+
+      <section class="card sm-12">
         <h3>Observações</h3>
         <p style="color: var(--muted); font-size: 14px; line-height: 1.5">
           O dashboard carrega suas conexões do <code>authData</code> e as enriquece via webhook <code>/loadinfo</code>.
@@ -188,7 +203,7 @@
         return out;
       }
 
-      // Minutos transcritos: tenta no topo e/ou dentro de results[].data[0]
+      // Minutos transcritos
       function extractMinutes(data){
         if(data && typeof data === 'object' && !Array.isArray(data)){
           return { minTotal: Number(data.minTotal||0), minMonth: Number(data.minMonth||0) };
@@ -245,7 +260,7 @@
         if(s==='close' || s==='closed') return 'var(--danger)';
         return 'var(--warn)';
       }
-      // Máscara: +xx xx x xxxx-xxxx (heurística defensiva)
+      // Máscara: +xx xx x xxxx-xxxx
       function maskPhone(ownerJid){
         const only = (ownerJid||'').split('@')[0] || '';
         const d = only.replace(/\D/g,'');
@@ -318,7 +333,8 @@
                 persistInstances(state);
               }
 
-              // Recarrega informações
+              // Aguarda propagação e recarrega
+              await new Promise(r=>setTimeout(r,1500));
               await reloadInfos(state, /*silent*/true);
             }catch(_){
               toast(`Falha ao ${act}`);
@@ -433,18 +449,16 @@
         }
       }
 
-      // Persistência local de instâncias (mantém compatibilidade com formatos)
+      // Persistência local de instâncias
       function persistInstances(state){
         try{
           const raw = localStorage.getItem('authData');
           let data = deepParse(raw);
-          // Se já veio no formato novo, mantemos wrappers mínimos só com name
           if(Array.isArray(data) && data[0]?.results){
             const wrappers = state.instances.map(n => ({ results:[{ success:true, data:[{ name:n }] }], order:[null] }));
             localStorage.setItem('authData', JSON.stringify(wrappers));
             return;
           }
-          // Caso antigo: salva como array[0] com instances
           const base = Array.isArray(data) ? (data[0]||{}) : (data||{});
           base.instances = state.instances.slice();
           localStorage.setItem('authData', JSON.stringify([ base ]));
@@ -467,7 +481,6 @@
 
         try{
           createBtn.toggleAttribute('disabled', true);
-          // body = texto puro com o nome
           await fetch(CREATE_INSTANCE_WEBHOOK, {
             method:'POST',
             headers:{ 'Content-Type':'text/plain;charset=UTF-8' },
@@ -479,6 +492,7 @@
 
           toast('Conexão criada');
           renderBase(state);
+          await new Promise(r=>setTimeout(r,1500));
           await reloadInfos(state);
           return state;
         }catch(_){
