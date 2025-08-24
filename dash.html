@@ -70,16 +70,21 @@
 
     .footer{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
 
-    .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
+    .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);z-index:50}
     .modal.open{display:grid}
-    .sheet{width:min(460px,92vw);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+    .sheet{width:min(520px,92vw);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
     .sheet h4{margin:0 0 8px}.sheet p{margin:0 0 14px;color:var(--muted);font-size:14px}
     .field{display:grid;gap:6px;margin-bottom:12px}
     .input{width:100%;padding:12px 12px;border-radius:12px;border:1px solid var(--line);background:#0d1310;color:var(--text);outline:none}
     .input:focus{border-color:var(--wa);box-shadow:0 0 0 3px rgba(37,211,102,.16)}
-    .sheet .row{display:flex;gap:10px;justify-content:flex-end}
-    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f1512;border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:var(--text);display:none;box-shadow:var(--shadow)}
+    .sheet .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f1512;border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:var(--text);display:none;box-shadow:var(--shadow);z-index:60}
     .toast.show{display:block}
+
+    .qr-wrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+    .qr-box{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0b0f0c}
+    .qr-img{width:260px;height:260px;object-fit:contain;display:block;border-radius:8px}
+    .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,"Cascadia Mono",Consolas,"Liberation Mono","Courier New",monospace;font-size:12px;word-break:break-all;color:var(--muted)}
   </style>
 </head>
 <body>
@@ -141,6 +146,28 @@
     </div>
   </div>
 
+  <!-- Modal QR Code -->
+  <div id="qrModal" class="modal" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+      <h4 id="qrTitle">Conectar via QR Code</h4>
+      <div class="qr-wrap">
+        <div class="qr-box">
+          <img id="qrImg" class="qr-img" alt="QR Code para pareamento">
+        </div>
+        <div style="min-width:240px;flex:1 1 240px">
+          <p id="qrInstance" class="tag" style="display:inline-block;margin:0 0 8px 0">Instância: —</p>
+          <p class="mono" id="qrPairing">pairingCode: —</p>
+          <p class="mono" id="qrCode" style="max-height:140px;overflow:auto">code: —</p>
+          <div class="row" style="margin-top:8px;justify-content:flex-start">
+            <button id="btnCopyCode" class="btn">Copiar code</button>
+            <button id="btnCloseQr" class="btn">Fechar</button>
+          </div>
+          <p class="mono" style="margin-top:8px">Dica: mantenha o QR visível. Depois de escanear no WhatsApp, use <strong>Recarregar</strong> para refletir o status.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -167,12 +194,23 @@
       const cancelBtn  = document.getElementById('cancelBtn');
       const createBtn  = document.getElementById('createBtn');
       const instNameEl = document.getElementById('instName');
+
+      const qrModal    = document.getElementById('qrModal');
+      const qrImg      = document.getElementById('qrImg');
+      const qrInstance = document.getElementById('qrInstance');
+      const qrPairing  = document.getElementById('qrPairing');
+      const qrCodeEl   = document.getElementById('qrCode');
+      const btnCopy    = document.getElementById('btnCopyCode');
+      const btnCloseQr = document.getElementById('btnCloseQr');
+
       const toastEl    = document.getElementById('toast');
 
       // UX helpers
       function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); }
       function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); instNameEl.value=''; instNameEl.focus(); }
       function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+      function openQr(){ qrModal.classList.add('open'); qrModal.setAttribute('aria-hidden','false'); }
+      function closeQr(){ qrModal.classList.remove('open'); qrModal.setAttribute('aria-hidden','true'); }
 
       // Sessão / parsing robusto
       function deepParse(x){
@@ -305,17 +343,60 @@
         `;
       }
 
-      // Chamada genérica para connect/disconnect/delete com login+name
-      async function actionWebhook(act, name, login){
-        const url = act==='disconnect' ? DISCONNECT_WEBHOOK
-                  : act==='connect'    ? CONNECT_WEBHOOK
-                  : DELETE_WEBHOOK;
+      // Modal QR helpers
+      function fillAndOpenQr(name, payload){
+        const base64 = payload?.base64 || '';
+        const code   = payload?.code || '';
+        const pairingCode = payload?.pairingCode ?? '—';
+
+        qrImg.src = base64 || '';
+        qrInstance.textContent = `Instância: ${name}`;
+        qrPairing.textContent  = `pairingCode: ${pairingCode}`;
+        qrCodeEl.textContent   = `code: ${code || '—'}`;
+
+        btnCopy.onclick = async ()=> {
+          try{
+            await navigator.clipboard.writeText(code || '');
+            toast('Code copiado');
+          }catch{ toast('Falha ao copiar'); }
+        };
+        openQr();
+      }
+
+      // Conectar → chama webhook, abre QR; demais → ação + delay + reload
+      async function handleAction(act, name, login, state){
+        if(act === 'connect'){
+          const body = JSON.stringify({ login, name });
+          const res = await fetch(CONNECT_WEBHOOK, { method:'POST', headers:{ 'Content-Type':'application/json' }, body });
+          const text = await res.text();
+          let data = null;
+          try{ data = JSON.parse(text); }catch{}
+          // Suporta: [ { success:true, data:{...} } ]  e variações
+          let payload = null;
+          if(Array.isArray(data) && data[0]){
+            const d0 = data[0];
+            payload = d0?.data || d0?.results?.[0]?.data?.[0] || null;
+          }
+          if(!payload){ toast('Resposta inesperada do QR'); return; }
+          fillAndOpenQr(name, payload);
+          toast('QR gerado');
+          // Sem reload automático aqui para não fechar o QR no meio do pareamento
+          return;
+        }
+
+        // disconnect / delete
+        const url = act==='disconnect' ? DISCONNECT_WEBHOOK : DELETE_WEBHOOK;
         const body = JSON.stringify({ login, name });
-        await fetch(url, {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          body
-        });
+        await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body });
+
+        if(act==='delete'){
+          const nextInst = (state.instances||[]).filter(i => i !== name);
+          state.instances = nextInst;
+          persistInstances(state);
+        }
+
+        await new Promise(r=>setTimeout(r,1500));
+        await reloadInfos(state, /*silent*/true);
       }
 
       function wireRowActions(container, state){
@@ -326,17 +407,8 @@
             if(!name){ toast('Nome inválido.'); return; }
             btn.toggleAttribute('disabled', true);
             try{
-              await actionWebhook(act, name, state.login || '—');
+              await handleAction(act, name, state.login || '—', state);
               toast(`${act.charAt(0).toUpperCase()+act.slice(1)} solicitado`);
-
-              if(act==='delete'){
-                const nextInst = (state.instances||[]).filter(i => i !== name);
-                state.instances = nextInst;
-                persistInstances(state);
-              }
-
-              await new Promise(r=>setTimeout(r,1500));
-              await reloadInfos(state, /*silent*/true);
             }catch(_){
               toast(`Falha ao ${act}`);
             }finally{
@@ -346,6 +418,7 @@
         });
       }
 
+      // Render
       function renderBase(state){
         const login = state.login ?? '—';
         const allowed = Number(state.instancesAllowed ?? 0);
@@ -403,6 +476,7 @@
         wireRowActions(listEl, state);
       }
 
+      // /loadinfo
       function extractInfoFromAny(item){
         if(item?.results){
           const first = Array.isArray(item.results) ? item.results[0] : null;
@@ -448,6 +522,7 @@
         }
       }
 
+      // Persistência local
       function persistInstances(state){
         try{
           const raw = localStorage.getItem('authData');
@@ -463,6 +538,7 @@
         }catch(_){}
       }
 
+      // Fluxos principais
       async function reloadInfos(state, silent=false){
         if(!silent) usageEl.textContent = 'Sincronizando…';
         const infos = await fetchLoadInfo(state.instances);
@@ -477,7 +553,7 @@
         if((state.instances||[]).length >= state.instancesAllowed){ toast('Limite atingido'); return null; }
 
         try{
-          createBtn.toggleAttribute('disabled', true);
+          document.getElementById('createBtn').toggleAttribute('disabled', true);
           const body = JSON.stringify({ login: state.login || '—', name });
           await fetch(CREATE_INSTANCE_WEBHOOK, {
             method:'POST',
@@ -496,7 +572,7 @@
         }catch(_){
           toast('Falha ao criar conexão'); return null;
         }finally{
-          createBtn.toggleAttribute('disabled', false);
+          document.getElementById('createBtn').toggleAttribute('disabled', false);
         }
       }
 
@@ -510,29 +586,26 @@
       state.instances = dedupe(state.instances);
 
       renderBase(state);
-      (async ()=>{
-        await reloadInfos(state);
-      })();
+      (async ()=>{ await reloadInfos(state); })();
 
       // Ações topo
-      newBtn.addEventListener('click', ()=>openModal());
-      logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('authData'); window.location.replace('index.html'); });
-      reloadBtn.addEventListener('click', async ()=>{
-        renderBase(state);
-        await reloadInfos(state);
-      });
+      document.getElementById('newBtn').addEventListener('click', ()=>openModal());
+      document.getElementById('logoutBtn').addEventListener('click', ()=>{ localStorage.removeItem('authData'); window.location.replace('index.html'); });
+      reloadBtn.addEventListener('click', async ()=>{ renderBase(state); await reloadInfos(state); });
 
-      // Modal
+      // Modal Nova Conexão
       cancelBtn.addEventListener('click', closeModal);
-      createBtn.addEventListener('click', async ()=>{
-        const name = instNameEl.value;
-        const updated = await createInstance(state, name);
-        if(updated){ state = updated; closeModal(); }
-      });
+      createBtn.addEventListener('click', async ()=>{ const name = instNameEl.value; const updated = await createInstance(state, name); if(updated){ state = updated; closeModal(); }});
       instNameEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') createBtn.click(); });
 
-      // A11y
-      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeModal(); });
+      // Modal QR
+      btnCloseQr.addEventListener('click', closeQr);
+      document.addEventListener('keydown', (e)=>{ 
+        if(e.key==='Escape'){ 
+          if(qrModal.classList.contains('open')) closeQr();
+          else if(modal.classList.contains('open')) closeModal();
+        }
+      });
     })();
   </script>
 </body>
