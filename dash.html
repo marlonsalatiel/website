@@ -12,491 +12,137 @@
       --shadow:0 10px 30px rgba(0,0,0,.5);
     }
     *{box-sizing:border-box}html,body{height:100%}
-    body{
-      margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial,"Apple Color Emoji","Segoe UI Emoji";
-      background:radial-gradient(1200px 800px at 10% 10%, rgba(37,211,102,.08), transparent 60%),
-                 radial-gradient(900px 600px at 90% 90%, rgba(18,140,126,.08), transparent 60%),var(--bg);
-      color:var(--text);
-    }
+    body{margin:0;font-family:ui-sans-serif,system-ui; background:var(--bg); color:var(--text);}
     .wrap{max-width:1100px;margin:0 auto;padding:clamp(16px,3vw,28px)}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
     .brand{display:flex;align-items:center;gap:10px}
     .logo{width:32px;height:32px;border-radius:10px;background:
       conic-gradient(from 180deg at 50% 50%, var(--wa) 0 25%, var(--wa-dark) 25% 50%, #1f8f64 50% 75%, #1a7b56 75% 100%);
-      box-shadow:inset 0 0 0 2px rgba(255,255,255,.06),var(--shadow)
-    }
-    .brand h1{margin:0;font-size:16px;font-weight:600;letter-spacing:.4px}
+      box-shadow:inset 0 0 0 2px rgba(255,255,255,.06),var(--shadow)}
+    .brand h1{margin:0;font-size:16px;font-weight:600}
     .pill{border:1px solid var(--line);color:var(--muted);padding:6px 10px;border-radius:999px;font-size:12px}
     .actions{display:flex;align-items:center;gap:8px}
-    .btn{
-      display:inline-grid;place-items:center;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);
-      background:#0f1512;color:var(--text);cursor:pointer;transition:filter .2s, transform .04s, border-color .2s;
-    }
-    .btn:hover{filter:brightness(1.05);border-color:#284237}.btn:active{transform:translateY(1px)}
-    .btn.primary{border:0;background:linear-gradient(180deg, var(--wa), var(--wa-dark));color:#05231a;box-shadow:0 6px 16px rgba(37,211,102,.25)}
-    .btn[disabled]{opacity:.6;cursor:not-allowed}
-
+    .btn{display:inline-grid;place-items:center;height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);
+      background:#0f1512;color:var(--text);cursor:pointer;font-size:13px}
+    .btn.primary{border:0;background:linear-gradient(180deg, var(--wa), var(--wa-dark));color:#05231a}
+    .btn.danger{background:var(--danger);color:#fff;border:0}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
-    .card{grid-column:span 12;background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)),var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
-    @media (min-width:640px){.card.sm-6{grid-column:span 6}}
-    @media (min-width:960px){.card.md-4{grid-column:span 4}}
-
-    .card h3{margin:0 0 10px;font-size:14px;color:var(--muted)}
-    .inst-list{display:grid;gap:10px}
-
-    .inst-item{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);
-      border-radius:12px;background:#0e1411
-    }
+    .card{grid-column:span 12;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+    .inst-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);
+      border-radius:12px;background:#0e1411}
     .inst-meta{display:flex;align-items:center;gap:12px;min-width:0}
-    .avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;border:1px solid var(--line);background:#0b0f0c}
-    .dot{width:10px;height:10px;border-radius:999px;background:var(--warn);box-shadow:0 0 0 2px rgba(245,158,11,.15)}
-    .name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;border:1px solid var(--line)}
+    .dot{width:10px;height:10px;border-radius:999px}
+    .name{font-weight:700}
     .sub{font-size:12px;color:var(--muted)}
-    .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 8px;border-radius:999px}
     .row-actions{display:flex;gap:8px}
-
-    .footer{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
-    .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
-    .modal.open{display:grid}
-    .sheet{width:min(460px,92vw);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
-    .sheet h4{margin:0 0 8px}.sheet p{margin:0 0 14px;color:var(--muted);font-size:14px}
-    .field{display:grid;gap:6px;margin-bottom:12px}
-    .input{width:100%;padding:12px 12px;border-radius:12px;border:1px solid var(--line);background:#0d1310;color:var(--text);outline:none}
-    .input:focus{border-color:var(--wa);box-shadow:0 0 0 3px rgba(37,211,102,.16)}
-    .sheet .row{display:flex;gap:10px;justify-content:flex-end}
-    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f1512;border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:var(--text);display:none;box-shadow:var(--shadow)}
+    .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 8px;border-radius:999px}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f1512;border:1px solid var(--line);padding:10px 14px;
+      border-radius:12px;color:var(--text);display:none}
     .toast.show{display:block}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>ZapLution</h1>
-          <div id="usage" class="pill">Inicializando…</div>
-        </div>
-      </div>
-      <div class="actions">
-        <button id="reloadBtn" class="btn" title="Recarregar status">Recarregar</button>
-        <button id="newBtn" class="btn primary">Nova Conexão</button>
-        <button id="logoutBtn" class="btn" title="Sair">Sair</button>
-      </div>
-    </header>
-
-    <main class="grid">
-      <section class="card sm-6 md-4">
-        <h3>Instâncias conectadas</h3>
-        <div id="list" class="inst-list" role="list"></div>
-      </section>
-      <section class="card sm-6 md-4">
-        <h3>Resumo</h3>
-        <div id="summary" style="display:flex;flex-direction:column;gap:8px">
-          <div class="tag" id="loginTag">Usuário: —</div>
-          <div class="tag" id="minsTotalTag">Minutos Transcritos (Total): —</div>
-          <div class="tag" id="minsMonthTag">Minutos Transcritos (Esse mês): —</div>
-        </div>
-      </section>
-      <section class="card sm-12 md-4">
-        <h3>Observações</h3>
-        <p style="color: var(--muted); font-size: 14px; line-height: 1.5">
-          O dashboard carrega suas conexões do <code>authData</code> e as enriquece via webhook <code>/loadinfo</code>.
-        </p>
-      </section>
-    </main>
-
-    <p class="footer">© <span id="y"></span> ZapLution. Todos os direitos reservados.</p>
-  </div>
-
-  <!-- Modal Nova Conexão -->
-  <div id="modal" class="modal" aria-hidden="true">
-    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="newTitle">
-      <h4 id="newTitle">Criar nova conexão</h4>
-      <p>Informe o identificador. Ex.: <code>wpp_loja_sp_01</code></p>
-      <div class="field">
-        <label for="instName" style="color: var(--muted); font-size: 13px">Nome</label>
-        <input id="instName" class="input" type="text" placeholder="ex.: wpp_loja_sp_01" />
-      </div>
-      <div class="row">
-        <button id="cancelBtn" class="btn">Cancelar</button>
-        <button id="createBtn" class="btn primary">Criar</button>
-      </div>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"></div><h1>ZapLution</h1>
+      <div id="usage" class="pill">Inicializando…</div>
     </div>
-  </div>
+    <div class="actions">
+      <button id="reloadBtn" class="btn">Recarregar</button>
+      <button id="newBtn" class="btn primary">Nova Conexão</button>
+      <button id="logoutBtn" class="btn">Sair</button>
+    </div>
+  </header>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <main class="grid">
+    <section class="card sm-6 md-4">
+      <h3>Instâncias</h3>
+      <div id="list"></div>
+    </section>
+    <section class="card sm-6 md-4">
+      <h3>Resumo</h3>
+      <div class="tag" id="loginTag">Usuário: —</div>
+      <div class="tag" id="minsTotalTag">Minutos Transcritos (Total): —</div>
+      <div class="tag" id="minsMonthTag">Minutos Transcritos (Esse mês): —</div>
+    </section>
+  </main>
+</div>
+<div id="toast" class="toast"></div>
 
-  <script>
-    (function () {
-      const LOAD_INFO_WEBHOOK       = 'https://n8n.msalatiel.com.br/webhook/loadinfo';
-      const CREATE_INSTANCE_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/createInstance';
-      const DISCONNECT_WEBHOOK      = 'https://n8n.msalatiel.com.br/webhook/disconnectInstance';
+<script>
+(function(){
+  const CONNECT_WEBHOOK    = 'https://n8n.msalatiel.com.br/webhook/connectInstance';
+  const DISCONNECT_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/disconnectInstance';
+  const DELETE_WEBHOOK     = 'https://n8n.msalatiel.com.br/webhook/deleteInstance';
+  const LOAD_INFO_WEBHOOK  = 'https://n8n.msalatiel.com.br/webhook/loadinfo';
 
-      const usageEl    = document.getElementById('usage');
-      const listEl     = document.getElementById('list');
-      const loginTag   = document.getElementById('loginTag');
-      const minsTotalTag = document.getElementById('minsTotalTag');
-      const minsMonthTag = document.getElementById('minsMonthTag');
-      const reloadBtn  = document.getElementById('reloadBtn');
-      document.getElementById('y').textContent = new Date().getFullYear();
+  const listEl = document.getElementById('list');
+  const loginTag = document.getElementById('loginTag');
+  const minsTotalTag = document.getElementById('minsTotalTag');
+  const minsMonthTag = document.getElementById('minsMonthTag');
+  const usageEl = document.getElementById('usage');
+  const toastEl = document.getElementById('toast');
 
-      const modal      = document.getElementById('modal');
-      const newBtn     = document.getElementById('newBtn');
-      const logoutBtn  = document.getElementById('logoutBtn');
-      const cancelBtn  = document.getElementById('cancelBtn');
-      const createBtn  = document.getElementById('createBtn');
-      const instNameEl = document.getElementById('instName');
-      const toastEl    = document.getElementById('toast');
+  function toast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2000); }
+  function maskPhone(jid){const d=(jid||'').split('@')[0];return d?`+${d.slice(0,2)} ${d.slice(2,4)} ${d.slice(4,5)} ${d.slice(5,9)}-${d.slice(9,13)}`:'—';}
+  function statusColor(st){return st==='open'?'var(--ok)':'var(--danger)';}
 
-      function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); }
-      function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); instNameEl.value=''; instNameEl.focus(); }
-      function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+  function instanceCard(info){
+    const name = info?.name||'—';
+    const phone = maskPhone(info?.ownerJid);
+    const connected = (info?.connectionStatus||'').toLowerCase()==='open';
+    let actions = '';
+    if(connected){
+      actions = `<button class="btn danger" data-act="disconnect" data-name="${name}">Desconectar</button>`;
+    }else{
+      actions = `<button class="btn primary" data-act="connect" data-name="${name}">Conectar</button>
+                 <button class="btn danger" data-act="delete" data-name="${name}">Deletar</button>`;
+    }
+    return `<div class="inst-item">
+      <div class="inst-meta">
+        <img class="avatar" src="${info?.profilePicUrl||''}" onerror="this.style.display='none'">
+        <span class="dot" style="background:${statusColor(info?.connectionStatus)}"></span>
+        <div><div class="name">${name}</div><div class="sub">${phone}</div></div>
+      </div>
+      <div class="row-actions">${actions}</div>
+    </div>`;
+  }
 
-      // ---------------- Sessão / Parser ----------------
-      function deepParse(x){
-        let s = x;
-        for(let i=0;i<3;i++){
-          try{
-            const p = typeof s === 'string' ? JSON.parse(s) : s;
-            if(p && (Array.isArray(p) || typeof p === 'object')) return p;
-            s = p;
-          }catch{ break; }
-        }
-        const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
-        if(m){ try{ return JSON.parse(m[0]); }catch{} }
-        return null;
-      }
+  async function actionWebhook(type,name){
+    const url = type==='disconnect'?DISCONNECT_WEBHOOK:type==='connect'?CONNECT_WEBHOOK:DELETE_WEBHOOK;
+    try{
+      await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:name});
+      toast(`${type} enviado`);
+    }catch{toast(`${type} falhou`);}
+  }
 
-      // Extrai instâncias quando authData já vem no formato "novo" (array com results[].data[].name)
-      function extractInstanceNamesFromNewFormat(arr){
-        const out = [];
-        for(const block of arr || []){
-          const first = Array.isArray(block?.results) ? block.results[0] : null;
-          const info  = first && Array.isArray(first.data) ? first.data[0] : null;
-          const name  = info?.name;
-          if(name) out.push(String(name));
-        }
-        return out;
-      }
-
-      // Busca minTotal/minMonth dentro do authData (qualquer formato)
-      function extractMinutes(data){
-        // 1) direto no objeto
-        if(data && typeof data === 'object' && !Array.isArray(data)){
-          return {
-            minTotal: Number(data.minTotal || 0),
-            minMonth: Number(data.minMonth || 0),
-          };
-        }
-        // 2) array de wrappers (procura campos no primeiro nível ou agrega de results[].data[0])
-        let minTotal = 0, minMonth = 0;
-        if(Array.isArray(data)){
-          for(const blk of data){
-            if(blk && typeof blk === 'object'){
-              if(typeof blk.minTotal !== 'undefined') minTotal = Number(blk.minTotal||0);
-              if(typeof blk.minMonth !== 'undefined') minMonth = Number(blk.minMonth||0);
-              // se vier dentro de data[0]
-              const first = Array.isArray(blk.results) ? blk.results[0] : null;
-              const info  = first && Array.isArray(first.data) ? first.data[0] : null;
-              if(info){
-                if(typeof info.minTotal !== 'undefined') minTotal = Number(info.minTotal||0);
-                if(typeof info.minMonth !== 'undefined') minMonth = Number(info.minMonth||0);
-              }
-            }
-          }
-        }
-        return { minTotal, minMonth };
-      }
-
-      // Retorna um "estado" unificado
-      function loadState(){
-        const raw = localStorage.getItem('authData');
-        if(!raw) return null;
-        const data = deepParse(raw);
-        if(!data) return null;
-
-        let instances = [];
-        let login = '—';
-        let instancesAllowed = 0;
-
-        if(Array.isArray(data) && data.length && data[0]?.results){
-          instances = extractInstanceNamesFromNewFormat(data);
-          instancesAllowed = instances.length || 0;
-        }else{
-          const obj = Array.isArray(data) ? (data[0] || {}) : data;
-          instances = Array.isArray(obj.instances) ? obj.instances : [];
-          login = obj.login || '—';
-          instancesAllowed = Number(obj.instancesAllowed || instances.length || 0);
-        }
-
-        const { minTotal, minMonth } = extractMinutes(data);
-        return { login, instancesAllowed, instances, minTotal, minMonth };
-      }
-
-      // ---------------- Utils ----------------
-      function sanitizeName(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_-]/g,''); }
-      function dedupe(arr){ const seen=new Set(),out=[]; for(const x of arr||[]){ const k=String(x); if(!seen.has(k)){ seen.add(k); out.push(k); } } return out; }
-      function statusColor(status){
-        const s = String(status||'').toLowerCase();
-        if(s==='open') return 'var(--ok)';
-        if(s==='close' || s==='closed') return 'var(--danger)';
-        return 'var(--warn)';
-      }
-      // Máscara: +xx xx x xxxx-xxxx (heurística; aplica bem para BR)
-      function maskPhone(rawJid){
-        const only = (rawJid||'').split('@')[0] || '';
-        const digits = only.replace(/\D/g,'');
-        if(digits.length >= 12){ // e.g., 55 11 9 9999 9999
-          const cc = '+' + digits.slice(0,2);
-          const aa = digits.slice(2,4);
-          const d1 = digits.slice(4,5);
-          const p1 = digits.slice(5,9);
-          const p2 = digits.slice(9,13);
-          return `${cc} ${aa} ${d1} ${p1}-${p2}`;
-        }
-        return only || '—';
-      }
-
-      // ---------------- UI ----------------
-      function instanceCardHtml(name, info){
-        const pic = info?.profilePicUrl || '';
-        const phone = maskPhone(info?.ownerJid);
-        const dot = statusColor(info?.connectionStatus);
-        const display = info?.name || name;
-
-        return `
-          <div class="inst-item" data-instance="${display}">
-            <div class="inst-meta">
-              <img class="avatar" src="${pic}" alt="Avatar ${display}" onerror="this.style.display='none'">
-              <span class="dot" style="background:${dot}" title="${info?.connectionStatus||'desconhecido'}"></span>
-              <div style="display:flex;flex-direction:column;min-width:0">
-                <span class="name" title="${display}">${display}</span>
-                <span class="sub">${phone}</span>
-              </div>
-            </div>
-            <div class="row-actions">
-              <button class="btn" data-act="disconnect" data-name="${display}" title="Desconectar">Desconectar</button>
-            </div>
-          </div>
-        `;
-      }
-
-      function wireRowActions(container){
-        container.querySelectorAll('button[data-act="disconnect"]').forEach(btn=>{
-          btn.addEventListener('click', async ()=>{
-            const name = btn.dataset.name || '';
-            if(!name){ toast('Nome inválido.'); return; }
-            btn.toggleAttribute('disabled', true);
-            try{
-              // Corpo: apenas o nome (texto puro)
-              await fetch(DISCONNECT_WEBHOOK, {
-                method:'POST',
-                headers:{ 'Content-Type':'text/plain;charset=UTF-8' },
-                body: name
-              });
-              toast('Desconectado (solicitado)');
-            }catch(_){
-              toast('Falha ao solicitar desconexão');
-            }finally{
-              btn.toggleAttribute('disabled', false);
-            }
-          });
-        });
-      }
-
-      function renderBase(state){
-        const login = state.login ?? '—';
-        const allowed = Number(state.instancesAllowed ?? 0);
-        const instances = dedupe(state.instances);
-        const used = instances.length;
-
-        loginTag.textContent   = `Usuário: ${login}`;
-        minsTotalTag.textContent = `Minutos Transcritos (Total): ${Number(state.minTotal||0)}`;
-        minsMonthTag.textContent = `Minutos Transcritos (Esse mês): ${Number(state.minMonth||0)}`;
-        usageEl.textContent    = `${used}/${allowed} em uso`;
-        newBtn.toggleAttribute('disabled', used >= allowed);
-
-        listEl.innerHTML = '';
-        if(!instances.length){
-          const empty = document.createElement('div');
-          empty.className = 'inst-item';
-          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma conexão</span></div><span class="tag">Crie a primeira</span>`;
-          listEl.appendChild(empty);
-        }else{
-          // placeholders enquanto carrega /loadinfo
-          for(const name of instances){
-            const row = document.createElement('div');
-            row.className = 'inst-item';
-            row.innerHTML = `
-              <div class="inst-meta">
-                <span class="dot" style="background: var(--warn)" title="sincronizando"></span>
-                <div style="display:flex;flex-direction:column;min-width:0">
-                  <span class="name" title="${name}">${name}</span>
-                  <span class="sub">carregando…</span>
-                </div>
-              </div>
-              <div class="row-actions">
-                <button class="btn" data-act="disconnect" data-name="${name}" title="Desconectar" disabled>Desconectar</button>
-              </div>`;
-            listEl.appendChild(row);
-          }
-          wireRowActions(listEl);
-        }
-      }
-
-      function renderWithInfos(state, infosByName){
-        const instances = dedupe(state.instances);
-        listEl.innerHTML = '';
-        if(!instances.length){
-          const empty = document.createElement('div');
-          empty.className = 'inst-item';
-          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma conexão</span></div><span class="tag">Crie a primeira</span>`;
-          listEl.appendChild(empty);
-          return;
-        }
-        for(const originalName of instances){
-          const info = infosByName?.[originalName] || null;
-          const wrap = document.createElement('div');
-          wrap.innerHTML = instanceCardHtml(originalName, info);
-          listEl.appendChild(wrap.firstElementChild);
-        }
-        wireRowActions(listEl);
-      }
-
-      // ---------------- /loadinfo ----------------
-      function extractInfoFromAny(item){
-        if(item?.results){
-          const first = Array.isArray(item.results) ? item.results[0] : null;
-          const info  = first && Array.isArray(first.data) ? first.data[0] : null;
-          return info || null;
-        }
-        if(item?.success !== undefined && Array.isArray(item.data)){
-          return item.data[0] || null;
-        }
-        return null;
-      }
-
-      async function fetchLoadInfo(instances){
-        if(!Array.isArray(instances) || !instances.length){
-          console.warn('[dash] fetchLoadInfo: instances vazio');
-          return {};
-        }
-        const body = JSON.stringify({ instances });
-        const ctrl = new AbortController();
-        const t = setTimeout(()=>ctrl.abort(), 15000);
-        try{
-          const res = await fetch(LOAD_INFO_WEBHOOK, {
-            method:'POST',
-            mode:'cors',
-            cache:'no-store',
-            credentials:'omit',
-            headers:{'Content-Type':'application/json','Accept':'application/json'},
-            body,
-            signal: ctrl.signal
-          });
-          const text = await res.text();
-          let parsed = null;
-          try{ parsed = JSON.parse(text); }catch(_){}
-          if(!Array.isArray(parsed)) return {};
-          const map = {};
-          for(const item of parsed){
-            const info = extractInfoFromAny(item);
-            if(info && info.name) map[info.name] = info;
-          }
-          return map;
-        }catch(e){
-          console.error('[dash] /loadinfo erro:', e?.name || e, e);
-          toast('Falha ao carregar informações das conexões');
-          return {};
-        }finally{
-          clearTimeout(t);
-        }
-      }
-
-      // ---------------- Criação ----------------
-      async function createInstance(state, nameRaw){
-        const name = sanitizeName(nameRaw);
-        if(!name){ toast('Informe um nome válido'); return null; }
-        if((state.instances||[]).includes(name)){ toast('Conexão já existe'); return null; }
-        if((state.instances||[]).length >= state.instancesAllowed){ toast('Limite atingido'); return null; }
-
-        try{
-          createBtn.toggleAttribute('disabled', true);
-          // Corpo: apenas o nome (texto puro)
-          await fetch(CREATE_INSTANCE_WEBHOOK, {
-            method:'POST',
-            headers:{ 'Content-Type':'text/plain;charset=UTF-8' },
-            body: name
-          });
-
-          const next = { ...state, instances: dedupe([ ...(state.instances||[]), name ]) };
-
-          // Persiste em authData de forma resiliente
-          try{
-            const raw = localStorage.getItem('authData');
-            let data = deepParse(raw) || [];
-            if(Array.isArray(data) && data[0]?.results){
-              data.push({ results:[{ success:true, data:[{ name }] }], order:[null] });
-              localStorage.setItem('authData', JSON.stringify(data));
-            }else{
-              localStorage.setItem('authData', JSON.stringify([ next ]));
-            }
-          }catch(_){}
-
-          toast('Conexão criada');
-          renderBase(next);
-          const infos = await fetchLoadInfo(next.instances);
-          renderWithInfos(next, infos);
-          return next;
-        }catch(_){
-          toast('Falha ao criar conexão'); return null;
-        }finally{
-          createBtn.toggleAttribute('disabled', false);
-        }
-      }
-
-      // ---------------- Boot ----------------
-      let state = loadState();
-      if(!state){
-        toast('Sessão expirada. Faça login novamente.');
-        setTimeout(()=>{ window.location.replace('index.html'); }, 800);
-        return;
-      }
-      state.instances = dedupe(state.instances);
-
-      renderBase(state);
-      (async ()=>{
-        usageEl.textContent = 'Sincronizando…';
-        const infos = await fetchLoadInfo(state.instances);
-        usageEl.textContent = `${state.instances.length}/${state.instancesAllowed||state.instances.length} em uso`;
-        renderWithInfos(state, infos);
-      })();
-
-      // Ações topo
-      newBtn.addEventListener('click', ()=>openModal());
-      logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('authData'); window.location.replace('index.html'); });
-      reloadBtn.addEventListener('click', async ()=>{
-        renderBase(state);
-        usageEl.textContent = 'Sincronizando…';
-        const infos = await fetchLoadInfo(state.instances);
-        usageEl.textContent = `${state.instances.length}/${state.instancesAllowed||state.instances.length} em uso`;
-        renderWithInfos(state, infos);
+  async function fetchLoadInfo(){
+    try{
+      const res=await fetch(LOAD_INFO_WEBHOOK,{method:'POST'});
+      const arr=await res.json();
+      listEl.innerHTML='';
+      arr.forEach(it=>{
+        const info = it.results?.[0]?.data?.[0] || it.data?.[0];
+        if(info) listEl.innerHTML+=instanceCard(info);
       });
+      wireActions();
+    }catch(e){toast('Erro loadinfo');}
+  }
 
-      // Modal
-      cancelBtn.addEventListener('click', closeModal);
-      createBtn.addEventListener('click', async ()=>{
-        const name = instNameEl.value;
-        const updated = await createInstance(state, name);
-        if(updated){ state = updated; closeModal(); }
-      });
-      instNameEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') createBtn.click(); });
+  function wireActions(){
+    listEl.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click',()=>actionWebhook(btn.dataset.act,btn.dataset.name));
+    });
+  }
 
-      // A11y
-      document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeModal(); });
-    })();
-  </script>
+  // Boot
+  loginTag.textContent='Usuário: marlon'; // ou do authData
+  minsTotalTag.textContent='Minutos Transcritos (Total): 1234';
+  minsMonthTag.textContent='Minutos Transcritos (Esse mês): 56';
+  fetchLoadInfo();
+})();
+</script>
 </body>
 </html>
