@@ -81,7 +81,7 @@
       </div>
       <div class="actions">
         <button id="reloadBtn" class="btn" title="Recarregar status">Recarregar</button>
-        <button id="newBtn" class="btn primary">Nova instância</button>
+        <button id="newBtn" class="btn primary">Nova Conexão</button>
         <button id="logoutBtn" class="btn" title="Sair">Sair</button>
       </div>
     </header>
@@ -93,15 +93,16 @@
       </section>
       <section class="card sm-6 md-4">
         <h3>Resumo</h3>
-        <div id="summary">
+        <div id="summary" style="display:flex;flex-direction:column;gap:8px">
           <div class="tag" id="loginTag">Usuário: —</div>
-          <div class="tag" id="statusTag" style="margin-top:10px">Status: ativo</div>
+          <div class="tag" id="minsTotalTag">Minutos Transcritos (Total): —</div>
+          <div class="tag" id="minsMonthTag">Minutos Transcritos (Esse mês): —</div>
         </div>
       </section>
       <section class="card sm-12 md-4">
         <h3>Observações</h3>
         <p style="color: var(--muted); font-size: 14px; line-height: 1.5">
-          O dashboard carrega suas instâncias do <code>authData</code> e as enriquece via webhook <code>/loadinfo</code>. Formatos antigo e novo são suportados.
+          O dashboard carrega suas conexões do <code>authData</code> e as enriquece via webhook <code>/loadinfo</code>.
         </p>
       </section>
     </main>
@@ -109,14 +110,14 @@
     <p class="footer">© <span id="y"></span> ZapLution. Todos os direitos reservados.</p>
   </div>
 
-  <!-- Modal Nova Instância -->
+  <!-- Modal Nova Conexão -->
   <div id="modal" class="modal" aria-hidden="true">
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="newTitle">
-      <h4 id="newTitle">Criar nova instância</h4>
-      <p>Defina um identificador. Use letras, números, hífen ou sublinhado. Ex.: <code>vendas_sp_01</code></p>
+      <h4 id="newTitle">Criar nova conexão</h4>
+      <p>Informe o identificador. Ex.: <code>wpp_loja_sp_01</code></p>
       <div class="field">
-        <label for="instName" style="color: var(--muted); font-size: 13px">Nome da instância</label>
-        <input id="instName" class="input" type="text" placeholder="ex.: zap_bot_01" />
+        <label for="instName" style="color: var(--muted); font-size: 13px">Nome</label>
+        <input id="instName" class="input" type="text" placeholder="ex.: wpp_loja_sp_01" />
       </div>
       <div class="row">
         <button id="cancelBtn" class="btn">Cancelar</button>
@@ -129,23 +130,25 @@
 
   <script>
     (function () {
-      // AJUSTE AQUI se for usar o webhook-test:
-      const LOAD_INFO_WEBHOOK      = 'https://n8n.msalatiel.com.br/webhook/loadinfo';
-      const CREATE_INSTANCE_WEBHOOK= 'https://n8n.msalatiel.com.br/webhook/create-instance';
+      const LOAD_INFO_WEBHOOK       = 'https://n8n.msalatiel.com.br/webhook/loadinfo';
+      const CREATE_INSTANCE_WEBHOOK = 'https://n8n.msalatiel.com.br/webhook/createInstance';
+      const DISCONNECT_WEBHOOK      = 'https://n8n.msalatiel.com.br/webhook/disconnectInstance';
 
-      const usageEl   = document.getElementById('usage');
-      const listEl    = document.getElementById('list');
-      const loginTag  = document.getElementById('loginTag');
-      const reloadBtn = document.getElementById('reloadBtn');
+      const usageEl    = document.getElementById('usage');
+      const listEl     = document.getElementById('list');
+      const loginTag   = document.getElementById('loginTag');
+      const minsTotalTag = document.getElementById('minsTotalTag');
+      const minsMonthTag = document.getElementById('minsMonthTag');
+      const reloadBtn  = document.getElementById('reloadBtn');
       document.getElementById('y').textContent = new Date().getFullYear();
 
-      const modal     = document.getElementById('modal');
-      const newBtn    = document.getElementById('newBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const cancelBtn = document.getElementById('cancelBtn');
-      const createBtn = document.getElementById('createBtn');
-      const instNameEl= document.getElementById('instName');
-      const toastEl   = document.getElementById('toast');
+      const modal      = document.getElementById('modal');
+      const newBtn     = document.getElementById('newBtn');
+      const logoutBtn  = document.getElementById('logoutBtn');
+      const cancelBtn  = document.getElementById('cancelBtn');
+      const createBtn  = document.getElementById('createBtn');
+      const instNameEl = document.getElementById('instName');
+      const toastEl    = document.getElementById('toast');
 
       function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); }
       function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); instNameEl.value=''; instNameEl.focus(); }
@@ -178,31 +181,58 @@
         return out;
       }
 
-      // Retorna um "estado" unificado independente do formato salvo
+      // Busca minTotal/minMonth dentro do authData (qualquer formato)
+      function extractMinutes(data){
+        // 1) direto no objeto
+        if(data && typeof data === 'object' && !Array.isArray(data)){
+          return {
+            minTotal: Number(data.minTotal || 0),
+            minMonth: Number(data.minMonth || 0),
+          };
+        }
+        // 2) array de wrappers (procura campos no primeiro nível ou agrega de results[].data[0])
+        let minTotal = 0, minMonth = 0;
+        if(Array.isArray(data)){
+          for(const blk of data){
+            if(blk && typeof blk === 'object'){
+              if(typeof blk.minTotal !== 'undefined') minTotal = Number(blk.minTotal||0);
+              if(typeof blk.minMonth !== 'undefined') minMonth = Number(blk.minMonth||0);
+              // se vier dentro de data[0]
+              const first = Array.isArray(blk.results) ? blk.results[0] : null;
+              const info  = first && Array.isArray(first.data) ? first.data[0] : null;
+              if(info){
+                if(typeof info.minTotal !== 'undefined') minTotal = Number(info.minTotal||0);
+                if(typeof info.minMonth !== 'undefined') minMonth = Number(info.minMonth||0);
+              }
+            }
+          }
+        }
+        return { minTotal, minMonth };
+      }
+
+      // Retorna um "estado" unificado
       function loadState(){
         const raw = localStorage.getItem('authData');
         if(!raw) return null;
         const data = deepParse(raw);
         if(!data) return null;
 
-        // Caso 1: formato novo (array com wrappers)
+        let instances = [];
+        let login = '—';
+        let instancesAllowed = 0;
+
         if(Array.isArray(data) && data.length && data[0]?.results){
-          const instances = extractInstanceNamesFromNewFormat(data);
-          return {
-            login: '—',                  // não vem login nesse formato
-            instancesAllowed: instances.length || 0,
-            instances
-          };
+          instances = extractInstanceNamesFromNewFormat(data);
+          instancesAllowed = instances.length || 0;
+        }else{
+          const obj = Array.isArray(data) ? (data[0] || {}) : data;
+          instances = Array.isArray(obj.instances) ? obj.instances : [];
+          login = obj.login || '—';
+          instancesAllowed = Number(obj.instancesAllowed || instances.length || 0);
         }
 
-        // Caso 2: formato antigo (objeto com instances/instancesAllowed) ou array[0]
-        const obj = Array.isArray(data) ? (data[0] || {}) : data;
-        const instances = Array.isArray(obj.instances) ? obj.instances : [];
-        return {
-          login: obj.login || '—',
-          instancesAllowed: Number(obj.instancesAllowed || instances.length || 0),
-          instances
-        };
+        const { minTotal, minMonth } = extractMinutes(data);
+        return { login, instancesAllowed, instances, minTotal, minMonth };
       }
 
       // ---------------- Utils ----------------
@@ -214,38 +244,66 @@
         if(s==='close' || s==='closed') return 'var(--danger)';
         return 'var(--warn)';
       }
-      function formatPhoneFromJid(ownerJid){
-        const raw = (ownerJid||'').split('@')[0] || '';
-        if(/^\d{12,15}$/.test(raw)){
-          let s = raw; if(s.startsWith('55')) s = '+'+s.slice(0,2)+' '+s.slice(2);
-          return s;
+      // Máscara: +xx xx x xxxx-xxxx (heurística; aplica bem para BR)
+      function maskPhone(rawJid){
+        const only = (rawJid||'').split('@')[0] || '';
+        const digits = only.replace(/\D/g,'');
+        if(digits.length >= 12){ // e.g., 55 11 9 9999 9999
+          const cc = '+' + digits.slice(0,2);
+          const aa = digits.slice(2,4);
+          const d1 = digits.slice(4,5);
+          const p1 = digits.slice(5,9);
+          const p2 = digits.slice(9,13);
+          return `${cc} ${aa} ${d1} ${p1}-${p2}`;
         }
-        return raw || '—';
+        return only || '—';
       }
 
       // ---------------- UI ----------------
       function instanceCardHtml(name, info){
         const pic = info?.profilePicUrl || '';
-        const phone = formatPhoneFromJid(info?.ownerJid);
+        const phone = maskPhone(info?.ownerJid);
         const dot = statusColor(info?.connectionStatus);
         const display = info?.name || name;
-        const subtitle = [info?.connectionStatus ? `status: ${info.connectionStatus}` : null, phone ? `tel: ${phone}` : null]
-          .filter(Boolean).join(' · ');
+
         return `
-          <div class="inst-item">
+          <div class="inst-item" data-instance="${display}">
             <div class="inst-meta">
               <img class="avatar" src="${pic}" alt="Avatar ${display}" onerror="this.style.display='none'">
               <span class="dot" style="background:${dot}" title="${info?.connectionStatus||'desconhecido'}"></span>
               <div style="display:flex;flex-direction:column;min-width:0">
                 <span class="name" title="${display}">${display}</span>
-                <span class="sub">${subtitle || ''}</span>
+                <span class="sub">${phone}</span>
               </div>
             </div>
             <div class="row-actions">
-              <button class="btn" data-act="copy" data-name="${display}" title="Copiar nome">Copiar</button>
+              <button class="btn" data-act="disconnect" data-name="${display}" title="Desconectar">Desconectar</button>
             </div>
           </div>
         `;
+      }
+
+      function wireRowActions(container){
+        container.querySelectorAll('button[data-act="disconnect"]').forEach(btn=>{
+          btn.addEventListener('click', async ()=>{
+            const name = btn.dataset.name || '';
+            if(!name){ toast('Nome inválido.'); return; }
+            btn.toggleAttribute('disabled', true);
+            try{
+              // Corpo: apenas o nome (texto puro)
+              await fetch(DISCONNECT_WEBHOOK, {
+                method:'POST',
+                headers:{ 'Content-Type':'text/plain;charset=UTF-8' },
+                body: name
+              });
+              toast('Desconectado (solicitado)');
+            }catch(_){
+              toast('Falha ao solicitar desconexão');
+            }finally{
+              btn.toggleAttribute('disabled', false);
+            }
+          });
+        });
       }
 
       function renderBase(state){
@@ -254,15 +312,17 @@
         const instances = dedupe(state.instances);
         const used = instances.length;
 
-        loginTag.textContent = `Usuário: ${login}`;
-        usageEl.textContent  = `${used}/${allowed} em uso`;
+        loginTag.textContent   = `Usuário: ${login}`;
+        minsTotalTag.textContent = `Minutos Transcritos (Total): ${Number(state.minTotal||0)}`;
+        minsMonthTag.textContent = `Minutos Transcritos (Esse mês): ${Number(state.minMonth||0)}`;
+        usageEl.textContent    = `${used}/${allowed} em uso`;
         newBtn.toggleAttribute('disabled', used >= allowed);
 
         listEl.innerHTML = '';
         if(!instances.length){
           const empty = document.createElement('div');
           empty.className = 'inst-item';
-          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
+          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma conexão</span></div><span class="tag">Crie a primeira</span>`;
           listEl.appendChild(empty);
         }else{
           // placeholders enquanto carrega /loadinfo
@@ -278,16 +338,11 @@
                 </div>
               </div>
               <div class="row-actions">
-                <button class="btn" data-act="copy" data-name="${name}" title="Copiar nome">Copiar</button>
+                <button class="btn" data-act="disconnect" data-name="${name}" title="Desconectar" disabled>Desconectar</button>
               </div>`;
             listEl.appendChild(row);
           }
-          listEl.querySelectorAll('button[data-act="copy"]').forEach(btn=>{
-            btn.addEventListener('click', async ()=>{
-              try{ await navigator.clipboard.writeText(btn.dataset.name||''); toast('Nome copiado'); }
-              catch{ toast('Falhou ao copiar'); }
-            });
-          });
+          wireRowActions(listEl);
         }
       }
 
@@ -297,7 +352,7 @@
         if(!instances.length){
           const empty = document.createElement('div');
           empty.className = 'inst-item';
-          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma instância</span></div><span class="tag">Crie a primeira</span>`;
+          empty.innerHTML = `<div class="inst-meta"><span class="dot" style="background: var(--warn)"></span><span class="name">Nenhuma conexão</span></div><span class="tag">Crie a primeira</span>`;
           listEl.appendChild(empty);
           return;
         }
@@ -307,24 +362,16 @@
           wrap.innerHTML = instanceCardHtml(originalName, info);
           listEl.appendChild(wrap.firstElementChild);
         }
-        listEl.querySelectorAll('button[data-act="copy"]').forEach(btn=>{
-          btn.addEventListener('click', async ()=>{
-            try{ await navigator.clipboard.writeText(btn.dataset.name||''); toast('Nome copiado'); }
-            catch{ toast('Falhou ao copiar'); }
-          });
-        });
+        wireRowActions(listEl);
       }
 
       // ---------------- /loadinfo ----------------
-      // Extrai um objeto info a partir de qualquer um dos dois formatos de item
       function extractInfoFromAny(item){
-        // Formato novo: { results: [ { success, data: [ {...} ] } ], order: [...] }
         if(item?.results){
           const first = Array.isArray(item.results) ? item.results[0] : null;
           const info  = first && Array.isArray(first.data) ? first.data[0] : null;
           return info || null;
         }
-        // Formato antigo: { success, data: [ {...} ] }
         if(item?.success !== undefined && Array.isArray(item.data)){
           return item.data[0] || null;
         }
@@ -353,7 +400,6 @@
           let parsed = null;
           try{ parsed = JSON.parse(text); }catch(_){}
           if(!Array.isArray(parsed)) return {};
-
           const map = {};
           for(const item of parsed){
             const info = extractInfoFromAny(item);
@@ -362,34 +408,36 @@
           return map;
         }catch(e){
           console.error('[dash] /loadinfo erro:', e?.name || e, e);
-          toast('Falha ao carregar informações das instâncias');
+          toast('Falha ao carregar informações das conexões');
           return {};
         }finally{
           clearTimeout(t);
         }
       }
 
-      // ---------------- Criação (opcional) ----------------
+      // ---------------- Criação ----------------
       async function createInstance(state, nameRaw){
         const name = sanitizeName(nameRaw);
         if(!name){ toast('Informe um nome válido'); return null; }
-        if((state.instances||[]).includes(name)){ toast('Instância já existe'); return null; }
+        if((state.instances||[]).includes(name)){ toast('Conexão já existe'); return null; }
         if((state.instances||[]).length >= state.instancesAllowed){ toast('Limite atingido'); return null; }
 
         try{
           createBtn.toggleAttribute('disabled', true);
-          await fetch(CREATE_INSTANCE_WEBHOOK,{
-            method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({ login: state.login, instance: name })
+          // Corpo: apenas o nome (texto puro)
+          await fetch(CREATE_INSTANCE_WEBHOOK, {
+            method:'POST',
+            headers:{ 'Content-Type':'text/plain;charset=UTF-8' },
+            body: name
           });
+
           const next = { ...state, instances: dedupe([ ...(state.instances||[]), name ]) };
 
-          // Persiste em authData de forma resiliente (se havia formato novo, guardamos um wrapper mínimo)
+          // Persiste em authData de forma resiliente
           try{
             const raw = localStorage.getItem('authData');
             let data = deepParse(raw) || [];
             if(Array.isArray(data) && data[0]?.results){
-              // Mantém padrão novo: adiciona um bloco fictício com o nome
               data.push({ results:[{ success:true, data:[{ name }] }], order:[null] });
               localStorage.setItem('authData', JSON.stringify(data));
             }else{
@@ -397,13 +445,13 @@
             }
           }catch(_){}
 
-          toast('Instância criada');
+          toast('Conexão criada');
           renderBase(next);
           const infos = await fetchLoadInfo(next.instances);
           renderWithInfos(next, infos);
           return next;
         }catch(_){
-          toast('Falha ao criar instância'); return null;
+          toast('Falha ao criar conexão'); return null;
         }finally{
           createBtn.toggleAttribute('disabled', false);
         }
