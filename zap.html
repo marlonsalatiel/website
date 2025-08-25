@@ -4,87 +4,84 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
-  <title>zapLution — Transcrição automática de áudios do WhatsApp</title>
-  <meta name="description" content="Transforme áudios do WhatsApp em texto com precisão máxima (OpenAI). Planos a partir de R$15/mês. Integração rápida com Evolution API e n8n.">
-  <meta property="og:title" content="zapLution — Transcrição automática de áudios do WhatsApp">
-  <meta property="og:description" content="Melhor transcrição possível com OpenAI. Minutos ilimitados por R$25/mês ou 120 min por R$15/mês.">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="zaplution-logo.png">
-  <link rel="icon" href="zaplution-logo.png">
+  <title>ZapLution — Transcrição de Áudios do WhatsApp</title>
+
+  <!-- Favicon / OG usando o logo -->
+  <link rel="icon" href="assets/zaplution-logo.png" />
+  <meta property="og:title" content="ZapLution — Transcrição de Áudios do WhatsApp">
+  <meta property="og:image" content="assets/zaplution-logo.png">
+  <meta name="theme-color" content="#25d366">
+  <meta name="description" content="Transforme áudios do WhatsApp em texto com alta precisão usando OpenAI. Planos a partir de R$15/mês.">
+
   <style>
     :root{
       --bg:#0b0f0c;--card:#111614;--muted:#a0afa8;--text:#e8f2ee;--line:#1d2622;
       --wa:#25d366;--wa-dark:#128c7e;--danger:#ef4444;--ok:#22c55e;--focus:#30e57b;
-      --shadow:0 10px 30px rgba(0,0,0,.45);
-      --radius:18px;
+      --shadow:0 10px 30px rgba(0,0,0,.5);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box}html,body{height:100%}
     body{
-      margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial;
-      background: radial-gradient(1200px 800px at 10% 10%, rgba(37,211,102,.06), transparent 60%), var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      background:radial-gradient(1200px 800px at 10% 10%, rgba(37,211,102,.08), transparent 60%),
+                 radial-gradient(900px 600px at 90% 90%, rgba(18,140,126,.08), transparent 60%),var(--bg);
+      color:var(--text);padding:clamp(16px,2vw,32px);
     }
-    a{color:inherit;text-decoration:none}
-    .container{max-width:1120px;margin:0 auto;padding:24px}
-    header{position:sticky;top:0;backdrop-filter:saturate(1.2) blur(8px);
-      background:linear-gradient(180deg, rgba(11,15,12,.9), rgba(11,15,12,.7));
-      border-bottom:1px solid var(--line); z-index:50}
-    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .brand img{height:34px;width:auto;display:block;filter:drop-shadow(0 6px 18px rgba(37,211,102,.25))}
-    .brand .name{font-weight:700;letter-spacing:.3px}
-    .cta{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;border:1px solid #1e2a25;
-      background:linear-gradient(180deg, rgba(37,211,102,.18), rgba(37,211,102,.12));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.05), var(--shadow); color:#eafff2; font-weight:700}
-    .cta:hover{transform:translateY(-1px);filter:saturate(1.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 12px 30px rgba(37,211,102,.22)}
-    .cta--outline{background:transparent;color:var(--text);border-color:#27332d}
-    .hero{padding:56px 0 24px}
-    .h1{font-size:clamp(28px,4vw,48px);line-height:1.1;margin:0 0 10px;font-weight:800}
-    .sub{font-size:clamp(16px,2.2vw,20px);color:var(--muted);max-width:820px}
-    .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
-    .trust{display:flex;align-items:center;gap:16px;margin-top:18px;color:#9fb3aa;font-size:14px}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #26322c;border-radius:999px;background:#0f1512}
-    .section{padding:36px 0}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-    .card{background:linear-gradient(180deg,#121915,#0e1311);border:1px solid var(--line);
-      border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
-    .card h3{margin:0 0 8px}
+    .container{max-width:1120px;margin:0 auto}
+    .brand{display:flex;align-items:center;gap:12px;user-select:none}
+    .logo{
+      width:40px;height:40px;border-radius:10px;overflow:hidden;flex:0 0 40px;
+      display:grid;place-items:center;background:#0e140f;border:1px solid var(--line);
+      box-shadow:0 0 18px rgba(37,211,102,.25), inset 0 0 0 2px rgba(255,255,255,.05);
+    }
+    .logo img{width:100%;height:100%;object-fit:cover;display:block;filter:drop-shadow(0 0 6px rgba(37,211,102,.45))}
+    header{position:sticky;top:0;z-index:20;background:rgba(11,15,12,.6);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .nav a{color:var(--muted);text-decoration:none;padding:10px 12px;border-radius:10px;border:1px solid transparent}
+    .nav a:hover{border-color:#223228;color:var(--text);background:#0e1512}
+
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;align-items:center;padding:24px 0}
+    .h1{font-size:clamp(28px,4vw,44px);line-height:1.1;margin:0 0 10px;font-weight:700}
+    .sub{color:var(--muted);font-size:clamp(15px,2.2vw,18px)}
+    .cta{
+      position:relative;display:inline-grid;place-items:center;height:48px;border-radius:12px;border:0;cursor:pointer;font-weight:600;
+      background:linear-gradient(180deg, var(--wa), var(--wa-dark));color:#02140d;letter-spacing:.2px;
+      box-shadow:0 6px 16px rgba(37,211,102,.25);padding:0 18px;transition:transform .04s, filter .2s, opacity .2s;
+    }
+    .cta:hover{filter:brightness(1.05)}.cta:active{transform:translateY(1px)}
+
+    .section{padding:24px 0}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)),var(--card);
+      border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
     .muted{color:var(--muted)}
-    .how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-    .step{position:relative;padding:22px;background:#0e1311;border:1px solid var(--line);border-radius:var(--radius)}
-    .step::before{content:attr(data-step);position:absolute;top:-10px;left:-10px;background:#122019;border:1px solid #264033;color:#bff5d1;
-      border-radius:12px;padding:6px 10px;font-weight:800}
-    .pricing{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-    .plan{padding:22px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,#121915,#0f1512)}
-    .plan--best{border-color:#2a6145;box-shadow:0 0 0 2px rgba(37,211,102,.15), var(--shadow)}
-    .price{font-size:40px;font-weight:900;display:flex;align-items:flex-end;gap:6px}
-    .price small{font-size:14px;color:var(--muted);font-weight:600}
-    ul.list{padding-left:18px;margin:10px 0 0}
-    ul.list li{margin:6px 0}
-    .faq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    details{border:1px solid var(--line);border-radius:14px;padding:14px;background:#0f1412}
-    summary{cursor:pointer;font-weight:700}
-    footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted)}
+
+    /* “Prints” simulados */
+    .prints{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+    .print{background:#0d1310;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    .print .bar{display:flex;gap:6px;padding:8px;border-bottom:1px solid var(--line);background:#0f1512}
+    .dot{width:8px;height:8px;border-radius:50%}
+    .msgwrap{padding:12px}
+    .bubble{max-width:80%;padding:10px 12px;border-radius:12px;margin:8px 0}
+    .bubble.in{background:#0f1512;border:1px solid #203128}
+    .bubble.out{background:#13251c;border:1px solid #243f33}
+    .time{font-size:12px;color:#8fa79e;margin-top:4px}
+
+    .pricing{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:6px}
+    .plan{padding:18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)),var(--card)}
+    .plan--best{box-shadow:0 0 0 2px rgba(37,211,102,.2), var(--shadow);border-color:#2a6145}
+    .price{font-size:36px;font-weight:800;display:flex;align-items:flex-end;gap:6px}
+    .price small{font-size:13px;color:var(--muted)}
+    ul.list{padding-left:18px;margin:10px 0 0} ul.list li{margin:6px 0}
+
+    footer{border-top:1px solid var(--line);padding:16px 0;color:var(--muted);margin-top:10px}
     .sticky-cta{position:fixed;right:16px;bottom:16px;z-index:60}
-    .whats{display:inline-flex;align-items:center;gap:12px;padding:14px 18px;border-radius:999px;background:var(--wa);
-      color:#08120b;font-weight:900;box-shadow:0 14px 34px rgba(37,211,102,.35)}
+    .whats{display:inline-flex;align-items:center;gap:10px;padding:14px 18px;border-radius:999px;background:var(--wa);
+      color:#08120b;font-weight:900;box-shadow:0 14px 34px rgba(37,211,102,.35);text-decoration:none}
     .whats:hover{transform:translateY(-2px);filter:saturate(1.2)}
-    .checks{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
-    .check{display:inline-flex;gap:8px;align-items:center;border:1px solid #203128;background:#0e1512;padding:8px 12px;border-radius:999px}
-    .shield{display:inline-flex;align-items:center;gap:10px}
-    .mini-ui{margin-top:12px;border:1px dashed #254034;border-radius:12px;padding:12px;background:#0a120e}
-    .mini-ui input[type="text"]{width:100%;padding:12px;border-radius:10px;border:1px solid #214132;background:#0c1511;color:var(--text)}
-    .mini-ui .row{display:flex;gap:8px;margin-top:8px}
-    .mini-ui .row button{flex:1;padding:12px;border-radius:10px;border:1px solid #1f2b26;background:#122019;color:#c8ffdf;font-weight:700}
-    .mini-ui .row button.primary{background:linear-gradient(180deg, rgba(37,211,102,.25), rgba(37,211,102,.18));border-color:#2b6d50}
-    .mini-ui .hint{color:#9fb3aa;font-size:12px;margin-top:8px}
-    .kicker{display:inline-block;font-weight:800;letter-spacing:.2em;color:#b7ffcf;background:#0c1a14;border:1px solid #254936;padding:6px 10px;border-radius:999px}
-    /* Responsive */
+
     @media (max-width:960px){
-      .grid,.how,.pricing,.faq{grid-template-columns:1fr}
-      .nav{gap:10px}
+      .hero{grid-template-columns:1fr}
+      .cards,.prints,.pricing{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -92,220 +89,138 @@
   <header>
     <div class="container nav">
       <div class="brand">
-        <img src="zaplution-logo.png" alt="zapLution logo">
-        <span class="name">zapLution</span>
+        <div class="logo" aria-hidden="true"><img src="assets/zaplution-logo.png" alt="Logomarca ZapLution"></div>
+        <div><strong>ZapLution</strong></div>
       </div>
-      <nav style="display:flex;gap:12px;align-items:center">
-        <a href="#precos" class="cta cta--outline">Planos</a>
-        <a href="#como-funciona" class="cta cta--outline">Como funciona</a>
-        <a href="#comprar" class="cta">Começar agora</a>
+      <nav>
+        <a href="#beneficios">Benefícios</a>
+        <a href="#prints">Exemplos</a>
+        <a href="#planos">Planos</a>
       </nav>
     </div>
   </header>
 
   <main class="container">
     <section class="hero">
-      <span class="kicker">WHATSAPP → TEXTO</span>
-      <h1 class="h1">Transcreva áudios do WhatsApp com <span style="background:linear-gradient(90deg,#9effc3,#e8f2ee);-webkit-background-clip:text;background-clip:text;color:transparent">precisão máxima</span>.</h1>
-      <p class="sub">Nosso serviço usa sempre a melhor versão do OpenAI (ChatGPT) para a <strong>melhor transcrição possível</strong>. Integração direta com Evolution API / n8n. Ative hoje e receba cada áudio como texto limpo, com <em>pontuação, identificação de falantes</em> e links para o áudio original.</p>
-      <div class="hero-ctas">
-        <a href="#comprar" class="cta">Assinar agora</a>
-        <a href="#demo" class="cta cta--outline">Ver mini‑demo</a>
-      </div>
-      <div class="trust">
-        <span class="badge"><img src="logo.png" alt="" style="height:16px"> OpenAI‑powered</span>
-        <span class="badge">Setup em 10 minutos</span>
-        <span class="badge">Sem limite de equipes</span>
-      </div>
-      <div class="checks">
-        <span class="check">✔ Precisão superior</span>
-        <span class="check">✔ Idiomas PT/EN/ES</span>
-        <span class="check">✔ Resumo automático (opcional)</span>
-        <span class="check">✔ Exporta para Google Sheets</span>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="grid">
-        <div class="card">
-          <h3>Texto impecável</h3>
-          <p class="muted">Pontuação, parágrafos e termos técnicos reconhecidos pelo modelo mais recente da OpenAI — você entende a mensagem sem precisar ouvir 3 minutos de áudio.</p>
+      <div>
+        <h1 class="h1">Áudios do WhatsApp viram texto — simples, rápido e preciso.</h1>
+        <p class="sub">Usamos a melhor versão disponível da OpenAI para garantir transcrições de alta qualidade. Ideal para equipes que precisam <em>buscar, documentar e agir</em> sem escutar tudo.</p>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <a class="cta" href="#planos">Assinar agora</a>
+          <a class="cta" style="background:transparent;color:var(--text);border:1px solid #223228" href="#prints">Ver exemplos</a>
         </div>
-        <div class="card">
-          <h3>Minutos ilimitados</h3>
-          <p class="muted">Plano <strong>Uilimitado R$25/mês</strong> para times que recebem muitos áudios. Preferir controle? <strong>120 min por R$15/mês</strong>.</p>
+        <p class="muted" style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <img src="assets/logo.png" alt="" style="height:16px"> Powered by OpenAI
+        </p>
+      </div>
+      <div class="print" aria-hidden="true">
+        <div class="bar">
+          <span class="dot" style="background:#ef4444"></span>
+          <span class="dot" style="background:#f59e0b"></span>
+          <span class="dot" style="background:#22c55e"></span>
         </div>
-        <div class="card">
-          <h3>Plug & Play</h3>
-          <p class="muted">Compatível com Evolution API e n8n. Enviou áudio → recebe o texto instantaneamente no seu fluxo, CRM ou planilha.</p>
+        <div class="msgwrap">
+          <div class="bubble in">Oi! Acabei de te mandar aquele áudio longo. Você consegue me enviar um resumo?</div>
+          <div class="bubble out">Claro. <strong>Resumo:</strong> reunião confirmada às 15h, enviar proposta até amanhã, aguardar documentos do cliente.</div>
+          <div class="time">Transcrito com ZapLution • 14:03</div>
         </div>
       </div>
     </section>
 
-    <section id="demo" class="section">
-      <div class="card">
-        <h3 style="margin:0 0 6px">Mini‑demo (visual)</h3>
-        <p class="muted" style="margin:0 0 10px">Simulação de como funciona a captura. No produto final, a transcrição ocorre no seu próprio fluxo (n8n/Evolution API).</p>
-        <div class="mini-ui">
-          <label for="audioUrl">URL do áudio (WhatsApp):</label>
-          <input id="audioUrl" type="text" placeholder="https://.../audio.ogg">
-          <div class="row">
-            <button class="primary" onclick="fakeTranscribe()">Transcrever</button>
-            <button onclick="copyOutput()">Copiar texto</button>
+    <section id="beneficios" class="section">
+      <div class="cards">
+        <div class="card"><h3>Alta precisão</h3><p class="muted">Modelos OpenAI atualizados para reconhecer nomes, números e termos técnicos com qualidade superior.</p></div>
+        <div class="card"><h3>Plug & Play</h3><p class="muted">Ativação rápida. Você envia o áudio e recebe o texto pronto para uso interno.</p></div>
+        <div class="card"><h3>Privacidade</h3><p class="muted">Processamento seguro em trânsito e limpeza opcional de dados sensíveis.</p></div>
+      </div>
+    </section>
+
+    <section id="prints" class="section">
+      <h2 style="margin:0 0 8px">Exemplos de transcrição</h2>
+      <p class="muted" style="margin:0 0 10px">Visual de como o texto chega. Estes são prints simulados para ilustrar a experiência.</p>
+      <div class="prints">
+        <div class="print">
+          <div class="bar"><span class="dot" style="background:#ef4444"></span><span class="dot" style="background:#f59e0b"></span><span class="dot" style="background:#22c55e"></span></div>
+          <div class="msgwrap">
+            <div class="bubble in">Seguinte: precisa reagendar a vistoria para quinta de manhã. Mostrei os pontos da obra no áudio.</div>
+            <div class="bubble out">Transcrição: “Precisamos reagendar a vistoria para quinta de manhã. Os pontos principais foram… (lista detalhada).”</div>
+            <div class="time">ZapLution • 09:41</div>
           </div>
-          <div id="out" class="hint">Aguarde…</div>
-          <div class="hint">*Demonstração estática. A versão real transcreve seus áudios automaticamente ao chegar.</div>
+        </div>
+        <div class="print">
+          <div class="bar"><span class="dot" style="background:#ef4444"></span><span class="dot" style="background:#f59e0b"></span><span class="dot" style="background:#22c55e"></span></div>
+          <div class="msgwrap">
+            <div class="bubble in">No áudio tem os números do mês. Confere, por favor.</div>
+            <div class="bubble out">Transcrição: “MQL 1.240; conversões 312; taxa 25,1%; receita 218 mil; foco em retenção e upsell.”</div>
+            <div class="time">ZapLution • 18:22</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section id="como-funciona" class="section">
-      <h2 style="margin:0 0 14px">Como funciona</h2>
-      <div class="how">
-        <div class="step" data-step="1">
-          <strong>Conecte seu WhatsApp</strong>
-          <p class="muted">Usando Evolution API (ou similar). Já trabalhamos com dezenas de instâncias e filas.</p>
-        </div>
-        <div class="step" data-step="2">
-          <strong>Ative a transcrição</strong>
-          <p class="muted">Enviamos o áudio ao modelo mais avançado da OpenAI. Retornamos <em>texto limpo</em> + metadados.</p>
-        </div>
-        <div class="step" data-step="3">
-          <strong>Receba onde quiser</strong>
-          <p class="muted">CRM, Google Sheets, e‑mail, ClickUp, Webhook… você escolhe o destino.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="precos" class="section">
-      <h2 style="margin:0 0 10px">Planos simples, sem letras miúdas</h2>
+    <section id="planos" class="section">
+      <h2 style="margin:0 0 8px">Planos simples</h2>
       <div class="pricing">
         <div class="plan">
           <div class="price">R$ 15 <small>/ mês</small></div>
-          <p class="muted">Até <strong>120 minutos por mês</strong>. Ideal para quem recebe poucos áudios.</p>
+          <p class="muted">Até <strong>120 minutos/mês</strong>. Inclui <strong>1 número conectado</strong>.</p>
           <ul class="list muted">
-            <li>Melhor transcrição (OpenAI)</li>
-            <li>Idiomas PT/EN/ES</li>
-            <li>Integração Evolution API / n8n</li>
-            <li>Envio para planilhas/CRM</li>
+            <li>Transcrição com OpenAI (melhor versão disponível)</li>
           </ul>
-          <div style="margin-top:14px">
-            <a id="btn-120" href="#comprar" class="cta">Assinar 120 min</a>
+          <div style="margin-top:12px">
+            <a id="btn-120" class="cta" href="#" data-plan="p15">Assinar 120 min</a>
           </div>
         </div>
-        <div class="plan plan--best" id="comprar">
+        <div class="plan plan--best">
           <div class="price">R$ 25 <small>/ mês</small></div>
-          <p class="muted"><strong>Minutos ilimitados</strong> por uma taxa fixa mensal. Sem surpresas.</p>
+          <p class="muted"><strong>Ilimitado em minutos/mês</strong>. Até <strong>2 números conectados</strong>.</p>
           <ul class="list muted">
-            <li>Tudo do plano 120 min</li>
-            <li>Uso em múltiplas filas</li>
-            <li>Prioridade no suporte</li>
+            <li>Transcrição com OpenAI (melhor versão disponível)</li>
+            <li>Beta tester de novas funções (se desejado)</li>
           </ul>
-          <div style="margin-top:14px">
-            <a id="btn-ilimitado" href="https://wa.me/5599999999999?text=Quero%20assinar%20o%20plano%20Ilimitado%20de%20R$25/mês%20do%20zapLution" class="cta">Assinar Ilimitado</a>
+          <div style="margin-top:12px">
+            <a id="btn-25" class="cta" href="#" data-plan="p25">Assinar Ilimitado</a>
           </div>
-          <p class="muted" style="font-size:12px;margin-top:8px">* Edite o número do WhatsApp no link acima.</p>
         </div>
       </div>
-
-      <div class="card" style="margin-top:16px">
-        <div class="shield">
-          <img src="zaplution-logo.png" alt="" style="height:22px">
-          <strong>Privacidade & Segurança</strong>
-        </div>
-        <p class="muted">Processamento criptografado em trânsito. Opção de mascarar números/nomes sensíveis. Registros para auditoria de eventos.</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2 style="margin:0 0 10px">Perguntas frequentes</h2>
-      <div class="faq">
-        <details>
-          <summary>Quais formatos de áudio são aceitos?</summary>
-          <p class="muted">Compatível com os formatos mais comuns do WhatsApp (OPUS/OGG, M4A, MP3). Convertemos quando necessário.</p>
-        </details>
-        <details>
-          <summary>Demora quanto tempo?</summary>
-          <p class="muted">Geralmente segundos. Em filas de alto volume, oferecemos paralelismo e prioridade.</p>
-        </details>
-        <details>
-          <summary>Posso integrar com meu CRM?</summary>
-          <p class="muted">Sim. Enviamos o texto para Webhook/CRM/Sheets/ClickUp. Fornecemos exemplos no n8n.</p>
-        </details>
-        <details>
-          <summary>Tem suporte?</summary>
-          <p class="muted">Suporte pelo WhatsApp em horário comercial. Plano ilimitado tem prioridade.</p>
-        </details>
-      </div>
+      <p class="muted" style="font-size:12px;margin-top:8px">* Os botões vão para o checkout do Stripe. Personalize os links via parâmetros na URL.</p>
     </section>
 
     <footer>
       <div class="container" style="padding:0">
         <div class="brand" style="margin-bottom:8px">
-          <img src="zaplution-logo.png" alt="zapLution logo">
-          <span class="name">zapLution</span>
+          <div class="logo" aria-hidden="true"><img src="assets/zaplution-logo.png" alt="ZapLution"></div>
+          <span>ZapLution</span>
         </div>
-        <div style="font-size:13px">© <span id="year"></span> zapLution — Todos os direitos reservados.</div>
+        <div style="font-size:13px">© <span id="year"></span> ZapLution — Todos os direitos reservados.</div>
       </div>
     </footer>
   </main>
 
   <div class="sticky-cta">
-    <a class="whats" id="whats-fab" href="https://wa.me/5599999999999?text=Quero%20assinar%20o%20zapLution%20Transcrição%20de%20Áudios">
-      <svg width="22" height="22" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M19.11 17.43c-.27-.14-1.57-.77-1.81-.86-.24-.09-.42-.14-.61.14-.18.27-.7.86-.86 1.04-.16.18-.32.2-.59.07-.27-.14-1.13-.42-2.15-1.33-.79-.7-1.32-1.57-1.48-1.84-.16-.27-.02-.41.12-.55.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.02-.22-.53-.45-.46-.61-.46h-.52c-.18 0-.48.07-.73.34-.25.27-.96.95-.96 2.31s.98 2.68 1.11 2.86c.14.18 1.93 2.95 4.68 4.13.65.28 1.16.45 1.56.58.66.21 1.26.18 1.73.11.53-.08 1.57-.64 1.79-1.26.22-.62.22-1.15.16-1.26-.06-.11-.24-.18-.5-.31z"/><path d="M26.16 5.83A13.15 13.15 0 0 0 16.08 2C8.72 2 2.76 7.96 2.76 15.31c0 2.2.58 4.36 1.69 6.27L2 30l8.6-2.27a13.03 13.03 0 0 0 5.49 1.25h.01c7.36 0 13.32-5.96 13.32-13.31 0-3.56-1.39-6.91-3.87-9.35zM16.1 27.5h-.01a11.98 11.98 0 0 1-5.11-1.21l-.37-.18-5.1 1.35 1.37-4.98-.2-.39a11.97 11.97 0 0 1-1.63-6.16c0-6.61 5.38-11.98 12-11.98 3.2 0 6.2 1.25 8.46 3.51a11.83 11.83 0 0 1 3.54 8.47c0 6.61-5.38 11.98-11.97 11.98z"/></svg>
+    <a class="whats" id="whats-fab" href="https://wa.me/5571999121102?text=Quero%20falar%20sobre%20a%20Transcri%C3%A7%C3%A3o%20de%20%C3%81udios%20do%20ZapLution">
       Falar no WhatsApp
     </a>
   </div>
 
   <script>
-    const year = document.getElementById('year'); if(year) year.textContent = new Date().getFullYear();
+    // Ano no rodapé
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Fake demo text
-    function fakeTranscribe(){
-      const out = document.getElementById('out');
-      out.textContent = "Detectamos português (BR).\\n\\nTranscrição (resumo): \\n— Reunião hoje às 15h. \\n— Enviar proposta por e‑mail. \\n— Confirmar disponibilidade do time.\\n\\nTexto completo disponível no seu fluxo.";
-    }
-    function copyOutput(){
-      const out = document.getElementById('out');
-      navigator.clipboard.writeText(out.textContent||"");
-      out.textContent = "Copiado para a área de transferência ✔";
-      setTimeout(()=>fakeTranscribe(),800);
-    }
-
-    // Helper: personalize links por querystring ?wa=55XXXXXXXXXXX
-    const params = new URLSearchParams(location.search);
-    const wa = params.get('wa');
-    if(wa){
-      document.querySelectorAll('a[href*=\"wa.me\"]').forEach(a=>{
-        try{
-          const url = new URL(a.href);
-          url.pathname = '/'+wa;
-          a.href = url.toString();
-        }catch(e){}
-      });
-    }
-  </script>
-
-  <!-- JSON-LD -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": "zapLution Transcrição de Áudios do WhatsApp",
-    "description": "Transcreva áudios do WhatsApp com a melhor precisão possível (OpenAI). Integração Evolution API e n8n.",
-    "brand": {"@type": "Brand", "name": "zapLution"},
-    "offers": [{
-      "@type": "Offer",
-      "price": "25.00",
-      "priceCurrency": "BRL",
-      "name":"Plano Ilimitado mensal"
-    },{
-      "@type": "Offer",
-      "price": "15.00",
-      "priceCurrency": "BRL",
-      "name":"Plano 120 minutos/mês"
-    }]
-  }
+    // Personalização de checkouts via querystring (?stripe120=URL&stripe25=URL)
+    (function(){
+      const q = new URLSearchParams(location.search);
+      const s120 = q.get('stripe120'); const s25 = q.get('stripe25');
+      if(s120) document.getElementById('btn-120').href = s120;
+      if(s25) document.getElementById('btn-25').href = s25;
+      // Fallbacks (coloque seus links do Stripe abaixo se quiser fixar)
+      if(!document.getElementById('btn-120').getAttribute('href') || document.getElementById('btn-120').getAttribute('href') === '#'){
+        document.getElementById('btn-120').setAttribute('href','#checkout-120'); // TODO: substituir pelo link real do Stripe
+      }
+      if(!document.getElementById('btn-25').getAttribute('href') || document.getElementById('btn-25').getAttribute('href') === '#'){
+        document.getElementById('btn-25').setAttribute('href','#checkout-25'); // TODO: substituir pelo link real do Stripe
+      }
+    })();
   </script>
 </body>
 </html>
