@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
   <title>ZapLution — Login</title>
+
+  <!-- Favicon / OG usando o logo -->
+  <link rel="icon" href="assets/zaplution-logo.png" />
+  <meta property="og:title" content="ZapLution — Login">
+  <meta property="og:image" content="assets/zaplution-logo.png">
+  <meta name="theme-color" content="#25d366">
+
   <style>
     :root{
       --bg:#0b0f0c;--card:#111614;--muted:#a0afa8;--text:#e8f2ee;--line:#1d2622;
@@ -20,10 +27,13 @@
     }
     .shell{width:min(480px,100%)}
     .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px;user-select:none}
-    .logo{width:36px;height:36px;border-radius:10px;background:
-      conic-gradient(from 180deg at 50% 50%, var(--wa) 0 25%, var(--wa-dark) 25% 50%, #1f8f64 50% 75%, #1a7b56 75% 100%);
-      box-shadow:inset 0 0 0 2px rgba(255,255,255,.06),var(--shadow)
+    /* LOGO como imagem (usa o arquivo do anexo) */
+    .logo{
+      width:40px;height:40px;border-radius:10px;overflow:hidden;flex:0 0 40px;
+      display:grid;place-items:center;background:#0e140f;border:1px solid var(--line);
+      box-shadow:0 0 18px rgba(37,211,102,.25), inset 0 0 0 2px rgba(255,255,255,.05);
     }
+    .logo img{width:100%;height:100%;object-fit:cover;display:block;filter:drop-shadow(0 0 6px rgba(37,211,102,.45))}
     .brand h1{font-size:18px;letter-spacing:.5px;margin:0;font-weight:600}
     .brand small{color:var(--muted);display:block;font-weight:500}
     .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)),var(--card);
@@ -64,7 +74,10 @@
 <body>
   <div class="shell">
     <div class="brand">
-      <div class="logo" aria-hidden="true"></div>
+      <!-- LOGO -->
+      <div class="logo" aria-hidden="true">
+        <img src="assets/zaplution-logo.png" alt="Logomarca ZapLution">
+      </div>
       <div><h1>ZapLution <small>acesso seguro</small></h1></div>
     </div>
 
@@ -135,63 +148,45 @@
             method:'POST', headers:{'Content-Type':'application/json'},
             body:JSON.stringify({ login, senha }), signal: ctr.signal
           });
-          // ... após receber a resposta do fetch:
-const raw = await res.text();
-const trimmed = (raw || "").trim();
 
-if (!trimmed) {
-  setStatus('Credenciais inválidas.', 'err');
-  return;
-}
+          const raw = await res.text();
+          const trimmed = (raw || "").trim();
+          if (!trimmed) { setStatus('Credenciais inválidas.', 'err'); return; }
 
-// Normalizador robusto: resolve JSON duplamente codificado, string com [ ... ], etc.
-function deepParseJson(x) {
-  let s = x;
-  // tenta parsear até 3 vezes se vier "string de JSON"
-  for (let i = 0; i < 3; i++) {
-    try {
-      const p = typeof s === 'string' ? JSON.parse(s) : s;
-      // se virou objeto/array, retorna
-      if (p && (Array.isArray(p) || typeof p === 'object')) return p;
-      // se virou string de novo, continua
-      s = p;
-    } catch {
-      break;
-    }
-  }
-  // fallback: tenta extrair primeiro bloco [ ... ]
-  const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
-  if (m) {
-    try { return JSON.parse(m[0]); } catch {}
-  }
-  return null;
-}
+          function deepParseJson(x) {
+            let s = x;
+            for (let i = 0; i < 3; i++) {
+              try {
+                const p = typeof s === 'string' ? JSON.parse(s) : s;
+                if (p && (Array.isArray(p) || typeof p === 'object')) return p;
+                s = p;
+              } catch { break; }
+            }
+            const m = typeof s === 'string' && s.match(/\[[\s\S]*\]/);
+            if (m) { try { return JSON.parse(m[0]); } catch {} }
+            return null;
+          }
 
-const parsed = deepParseJson(trimmed);
-if (!parsed) {
-  setStatus('Retorno inválido do servidor.', 'err');
-  return;
-}
+          const parsed = deepParseJson(trimmed);
+          if (!parsed) { setStatus('Retorno inválido do servidor.', 'err'); return; }
 
-// Canoniza: SEMPRE salva como array com 1 objeto (o primeiro item se vier array)
-const obj = Array.isArray(parsed) ? (parsed[0] || null) : parsed;
-if (!obj || typeof obj !== 'object' || !obj.login) {
-  setStatus('Retorno sem credenciais válidas.', 'err');
-  return;
-}
-localStorage.setItem('authData', JSON.stringify([obj]));
-
-setStatus('Login efetuado com sucesso.', 'ok');
-window.location.href = 'dash.html';
+          const obj = Array.isArray(parsed) ? (parsed[0] || null) : parsed;
+          if (!obj || typeof obj !== 'object' || !obj.login) {
+            setStatus('Retorno sem credenciais válidas.', 'err'); return;
+          }
+          localStorage.setItem('authData', JSON.stringify([obj]));
+          setStatus('Login efetuado com sucesso.', 'ok');
+          window.location.href = 'dash.html';
 
         }catch(err){
-          setStatus(err?.name==='AbortError'?'Tempo de conexão excedido. Tente novamente.':'Falha na conexão ou CORS bloqueado no webhook.','err');
+          setStatus(err?.name==='AbortError'
+            ? 'Tempo de conexão excedido. Tente novamente.'
+            : 'Falha na conexão ou CORS bloqueado no webhook.','err');
         }finally{
           clearTimeout(t); setLoading(false);
         }
       });
 
-      // QoL
       senhaEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') form.requestSubmit(); });
     })();
   </script>
