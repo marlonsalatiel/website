@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="dark light" />
   <title>zapLution — Dashboard</title>
 
-  <!-- favicon do anexo -->
+  <!-- favicon (mesmo ícone do zap.html) -->
   <link rel="icon" href="icon%20v1.png" type="image/png" />
 
   <style>
@@ -22,8 +22,8 @@
         radial-gradient(1200px 800px at 10% 10%, rgba(37,211,102,.08), transparent 60%),
         radial-gradient(900px 600px at 90% 90%, rgba(18,140,126,.08), transparent 60%),var(--bg);
       color:var(--text);
-      /* compensa a appbar fixa */
-      padding-top:76px;
+      /* compensa a appbar fixa + gap */
+      padding-top:66px; /* 56px de barra + ~10px de respiro */
     }
     .wrap{max-width:1100px;margin:0 auto;padding:clamp(16px,3vw,28px)}
     /* APPBAR fixa, translúcida e full-bleed */
@@ -33,17 +33,19 @@
       background:linear-gradient(180deg, rgba(10,14,12,.75), rgba(10,14,12,.55));
       border-bottom:1px solid var(--line);
     }
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px}
     .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:32px;height:32px;border-radius:10px;background:
-      conic-gradient(from 180deg at 50% 50%, var(--wa) 0 25%, var(--wa-dark) 25% 50%, #1f8f64 50% 75%, #1a7b56 75% 100%);
-      box-shadow:inset 0 0 0 2px rgba(255,255,255,.06),var(--shadow)
+    /* mesmo estilo visual do zap.html para o ícone */
+    .logo{
+      width:28px;height:28px;border-radius:8px;object-fit:cover;
+      box-shadow:inset 0 0 0 2px rgba(255,255,255,.06), var(--shadow);
+      background:#0b0f0c;border:1px solid var(--line)
     }
     .brand h1{margin:0;font-size:16px;font-weight:600;letter-spacing:.4px}
     .pill{border:1px solid var(--line);color:var(--muted);padding:6px 10px;border-radius:999px;font-size:12px}
     .actions{display:flex;align-items:center;gap:8px}
     .btn{
-      display:inline-grid;place-items:center;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);
+      display:inline-grid;place-items:center;height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line);
       background:#0f1512;color:var(--text);cursor:pointer;transition:filter .2s, transform .04s, border-color .2s;
     }
     .btn:hover{filter:brightness(1.05);border-color:#284237}.btn:active{transform:translateY(1px)}
@@ -80,7 +82,7 @@
     .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 8px;border-radius:999px}
     .row-actions{display:flex;gap:8px;flex:0 0 auto}
-    .row-actions .btn{height:36px;padding:0 12px;border-radius:8px}
+    .row-actions .btn{height:34px;padding:0 12px;border-radius:8px}
 
     .footer{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
 
@@ -115,7 +117,8 @@
   <div class="appbar">
     <div class="wrap topbar">
       <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
+        <!-- mesmo ícone do zap.html -->
+        <img class="logo" src="icon%20v1.png" alt="zapLution logo">
         <div>
           <h1>zapLution</h1>
           <div id="usage" class="pill">Inicializando…</div>
@@ -148,7 +151,6 @@
       <!-- CONFIGURAÇÕES -->
       <section class="card sm-12">
         <h3>Configurações</h3>
-
         <!-- Resumo de áudio -->
         <div class="cfg-row" style="margin-bottom:14px">
           <label class="switch" title="Habilitar resumo automático de áudios">
@@ -162,13 +164,14 @@
             <button id="btnSaveSummary" class="btn primary">Confirmar</button>
           </div>
         </div>
+      </section>
 
-        <hr style="border:0;border-top:1px solid var(--line);margin:12px 0" />
-
-        <!-- Sugestões e ideias -->
+      <!-- SUGESTÕES / FEEDBACK -->
+      <section class="card sm-12">
+        <h3>Sugestões & Ideias</h3>
         <div class="field">
-          <label for="ideas" style="color:var(--muted);font-size:13px">Sugestões & Ideias</label>
-          <textarea id="ideas" class="input" rows="4" placeholder="Conte sua sugestão, melhoria ou ideia…"></textarea>
+          <label for="ideas" style="color:var(--muted);font-size:13px">Conte sua sugestão, melhoria ou ideia…</label>
+          <textarea id="ideas" class="input" rows="4" placeholder="Escreva aqui…"></textarea>
         </div>
         <div class="row" style="justify-content:flex-start">
           <button id="btnSendFeedback" class="btn">Enviar feedback</button>
@@ -227,7 +230,7 @@
       const CONNECT_WEBHOOK         = 'https://n8n.msalatiel.com.br/webhook/connectInstance';
       const DISCONNECT_WEBHOOK      = 'https://n8n.msalatiel.com.br/webhook/disconnectInstance';
       const DELETE_WEBHOOK          = 'https://n8n.msalatiel.com.br/webhook/deleteInstance';
-      const AUDIO_SUMMARY_WEBHOOK   = 'https://n8n.msalatiel.com.br/webhook/setAudioSummary';
+      const SET_CONFIG_WEBHOOK      = 'https://n8n.msalatiel.com.br/webhook/setConfig';
       const FEEDBACK_WEBHOOK        = 'https://n8n.msalatiel.com.br/webhook/sendFeedback';
 
       // DOM
@@ -684,16 +687,30 @@
         secSummaryCfg.classList.toggle('hidden', !chkAudioSummary.checked);
       });
 
-      // Configurações — Confirmar
+      // Configurações — Confirmar (usa /setConfig e bloqueia < 90s)
       btnSaveSummary.addEventListener('click', async ()=>{
         const enabled = chkAudioSummary.checked;
-        const minSecs = Math.max(90, Number(minSecsEl.value||90));
+        const inputVal = Number(minSecsEl.value||90);
+        if(enabled && inputVal < 90){
+          toast('O mínimo para resumo de áudio é 90 segundos.');
+          return;
+        }
+        const minSecs = enabled ? inputVal : 90;
+
+        // salva local
         saveCfg({ enabled, minSecs });
+
+        // envia config consolidada
         try{
-          const body = JSON.stringify({ login: state.login||'—', enabled, minSeconds: minSecs });
-          await fetch(AUDIO_SUMMARY_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body });
+          const body = JSON.stringify({
+            login: state.login||'—',
+            audioSummary: { enabled, minSeconds: minSecs }
+          });
+          await fetch(SET_CONFIG_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body });
           toast('Configurações salvas');
-        }catch{ toast('Config local salva (webhook indisponível)'); }
+        }catch{
+          toast('Config local salva (webhook indisponível)');
+        }
       });
 
       // Feedback — enviar para webhook/sendFeedback
